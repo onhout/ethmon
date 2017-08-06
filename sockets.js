@@ -6,14 +6,10 @@ const net = require('net');
 const moment = require('moment');
 const log4js = require('log4js');
 const logger = log4js.getLogger();
-
 const config = require('./config.json');
-
-// const log4js = require('log4js');
-// const logger = log4js.getLogger();
-// logger.setLevel(config.log_level ? config.log_level : 'INFO');
-//
-// logger.warn('app: booting');
+require("moment-duration-format");
+const gpio = require('rpi-gpio');
+const delay = 2000;
 
 
 class Socket {
@@ -21,11 +17,28 @@ class Socket {
         this.server = socket(server);
         let socketserver = this.server;
 
-        require("moment-duration-format");
         let miners = {};
         miners.json = [];
 
         logger.info('config: ' + config.miners.length + ' rig(s) configured');
+
+        socketserver.on('connection', function (socket) {
+            socket.on('restartBtn', function (pin) {
+                gpio.setup(pin, gpio.DIR_OUT, on);
+
+                function on() {
+                    setTimeout(function () {
+                        gpio.write(pin, 1, destroy);
+                    }, delay);
+                }
+
+                function destroy() {
+                    gpio.destroy(function () {
+                        console.log('Closed pins, now exit');
+                    });
+                }
+            });
+        });
 
         config.miners.forEach(function (item, i, arr) {
             logger.trace(item.name + ': config[' + i + ']');

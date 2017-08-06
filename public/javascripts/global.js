@@ -15,6 +15,7 @@ let animation_index = 0;
 
 $(document).ready(() => {
     const socket = io();
+
     socket.on('incoming', (data) => {
         let eth = [0, 0, 0];
         let sec = [0, 0, 0];
@@ -41,7 +42,8 @@ $(document).ready(() => {
             type: 'button',
             click: function () {
                 let pinnumber = $(this).parents('tr').data('pinnumber');
-                console.log(pinnumber);
+                $(this).prop('disabled', 1);
+                socket.emit('restartBtn', pinnumber);
             }
         }));
         $.each(data, (index, miner) => {
