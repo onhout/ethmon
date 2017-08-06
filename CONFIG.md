@@ -53,7 +53,7 @@ Please notice that this sample will not work since contains comments not permitt
 
             // Optional target hashrates in MH/s
             "target_eth": 118,
-            "target_dcr": 2700,
+            "target_sec": 2700,
 
             // Miner comments. Use '<br>' for line breaks
             "comments": "ASUS 7950<br>Sapphire 390X<br>Sapphire 390X<br>Sapphire 390",

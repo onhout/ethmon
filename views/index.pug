@@ -1,0 +1,28 @@
+extends layout
+
+block content
+    .container-fluid
+        // Miner info
+        #minerInfo
+            h2.text-center= title
+            div.table-responsive
+                table.table.table-bordered.table-striped.table-condensed
+                    thead
+                        th Name
+                        th Host
+                        th Uptime
+                        th ETH/ETC&nbsp;Stats
+                        th Secondary Coin&nbsp;Stats
+                        if hashrates
+                            th ETH/ETC&nbsp;HR
+                            th Secondary Coin&nbsp;HR
+                        th Temp:Fan
+                        th Pools
+                        th Ver
+                        th Comments
+                        th Hard Reset
+                    tbody
+        p#minerSummary
+        p#lastUpdated
+        // /Miner info
+    // /Wrapper

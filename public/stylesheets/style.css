@@ -10,9 +10,6 @@ a {
     color: #00B7FF;
 }
 
-#wrapper {
-    position: relative;
-}
 
 #minerInfo {
     border: 0;
@@ -48,4 +45,8 @@ a {
 .warning {
     color: #00F;
     font-weight: bolder
+}
+
+.table > tbody > tr > td {
+    vertical-align: middle;
 }

@@ -34,3 +34,5 @@ node_modules
 
 # Production config.json
 config.json
+
+.idea/
