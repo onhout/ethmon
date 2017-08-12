@@ -10,6 +10,8 @@ const config = require('./config.json');
 require("moment-duration-format");
 const gpio = require('rpi-gpio');
 const delay = 2000;
+const bittrex = require('node.bittrex.api');
+
 
 
 class Socket {
@@ -38,7 +40,13 @@ class Socket {
                     });
                 }
             });
+            getMarket()
         });
+
+
+        setInterval(() => {
+            getMarket()
+        }, 30000);
 
         config.miners.forEach(function (item, i, arr) {
             logger.trace(item.name + ': config[' + i + ']');
@@ -205,6 +213,49 @@ class Socket {
             }
         });
 
+        function parseCurrency(data, callback) {
+            let currencyMatch = [
+                'USDT-NEO',
+                'USDT-BCC',
+                'USDT-BTC',
+                'USDT-DASH',
+                'USDT-ETC',
+                'USDT-ETH',
+                'USDT-LTC',
+                'USDT-XMR',
+                'USDT-XRP',
+                'USDT-ZEC'];
+            let currencies = {};
+            data.forEach((ele) => {
+                currencyMatch.forEach((match) => {
+                    if (ele.MarketName == match) {
+                        currencies[match.replace('USDT-', '')] = ele.Last;
+                    }
+                })
+            });
+            callback(currencies);
+        }
+
+        function getMarket() {
+            bittrex.getmarketsummaries((data, err) => {
+                let ETHMarket = data.result.filter(ele => ele.MarketName.indexOf('ETH-') == 0);
+                let BTCMarket = ETHMarket.map((ele) => {
+                    let BTCs = data.result.filter(ele => ele.MarketName.indexOf('BTC-') == 0);
+                    let str = ele.MarketName.slice(4, ele.MarketName.length);
+                    return BTCs.find(name => name.MarketName.slice(4, name.MarketName.length) == str);
+                });
+
+                if (err) {
+                    return console.error(err);
+                }
+                parseCurrency(data.result, function (currency) {
+                    socketserver.emit('market data', {
+                        currency: currency,
+                        market_data: {eth: ETHMarket, btc: BTCMarket}
+                    });
+                });
+            })
+        }
     }
 }
 

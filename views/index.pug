@@ -24,5 +24,36 @@ block content
                     tbody
         p#minerSummary
         p#lastUpdated
+        .row
+            #BTCmarketTable.col-md-4
+                h2.text-center BTC-Market
+                table.table.table-striped.table-condensed
+                    thead
+                        th Market Name
+                        th Bid(Buy)
+                        th Ask(Sell)
+                        th Last
+                    tbody
+            #ETHmarketTable.col-md-4
+                h2.text-center ETH-Market
+                table.table.table-striped.table-condensed
+                    thead
+                        th Market Name
+                        th Bid(Buy)
+                        th Ask(Sell)
+                        th Last
+                    tbody
+            #BTCETHProfit.col-md-2
+                h2.text-center BTC-ETH
+                table.table.table-striped.table-condensed
+                    thead
+                        th BTC -> ETH
+                    tbody
+            #ETHBTCProfit.col-md-2
+                h2.text-center ETH-BTC
+                table.table.table-striped.table-condensed
+                    thead
+                        th ETH -> BTC
+                    tbody
         // /Miner info
     // /Wrapper

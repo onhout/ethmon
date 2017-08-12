@@ -16,6 +16,61 @@ let animation_index = 0;
 $(document).ready(() => {
     const socket = io();
 
+    socket.on('market data', (data) => {
+        console.log(data);
+        const BTCmarketTable = $('#BTCmarketTable tbody');
+        const ETHmarketTable = $('#ETHmarketTable tbody');
+        const BTCETHProfit = $('#BTCETHProfit tbody');
+        const ETHBTCProfit = $('#ETHBTCProfit tbody');
+        const BittrexFee = 1.0025;
+        BTCmarketTable.html('');
+        ETHmarketTable.html('');
+        BTCETHProfit.html('');
+        ETHBTCProfit.html('');
+        let tdBid = '';
+        let tdAsk = '';
+        let tdLast = '';
+        let tdName = '';
+        data.market_data.btc.forEach((ele) => {
+            let BtcBuyPrice = (parseFloat(ele.Ask) * data.currency.BTC);
+            let str = ele.MarketName.slice(4, ele.MarketName.length);
+            let EthSellPrice = (data.market_data.eth.find(name => name.MarketName.slice(4, name.MarketName.length) == str).Bid) * data.currency.ETH;
+            let Percentage = (100 - ((BtcBuyPrice * BittrexFee) / (EthSellPrice * BittrexFee)) * 100).toFixed(4);
+            let TDBTCETH = '';
+            if (Percentage > 0) {
+                TDBTCETH = '<td class="text-success">' + Percentage + '%</td>';
+            } else {
+                TDBTCETH = '<td class="text-danger">' + Percentage + '%</td>';
+            }
+            //^^^^ MARKET XCHANGE ^^^^//
+            tdName = '<td>' + ele.MarketName + '</td>';
+            tdBid = '<td>$' + (parseFloat(ele.Bid) * data.currency.BTC).toFixed(6) + '</td>';
+            tdAsk = '<td>$' + (parseFloat(ele.Ask) * data.currency.BTC).toFixed(6) + '</td>';
+            tdLast = '<td>$' + (parseFloat(ele.Last) * data.currency.BTC).toFixed(6) + '</td>';
+            BTCmarketTable.append('<tr>' + tdName + tdBid + tdAsk + tdLast + '</tr>')
+            BTCETHProfit.append('<tr>' + TDBTCETH + '</tr>');
+        });
+        data.market_data.eth.forEach((ele) => {
+            let EthBuyPrice = (parseFloat(ele.Ask) * data.currency.ETH);
+            let str = ele.MarketName.slice(4, ele.MarketName.length);
+            let BtcSellPrice = (data.market_data.btc.find(name => name.MarketName.slice(4, name.MarketName.length) == str).Bid) * data.currency.BTC;
+            let Percentage = (100 - ((EthBuyPrice * BittrexFee) / (BtcSellPrice * BittrexFee)) * 100).toFixed(4);
+            let TDETHBTC = '';
+            if (Percentage > 0) {
+                TDETHBTC = '<td class="text-success">' + Percentage + '%</td>';
+            } else {
+                TDETHBTC = '<td class="text-danger">' + Percentage + '%</td>';
+            }
+
+            tdName = '<td>' + ele.MarketName + '</td>';
+            tdBid = '<td>$' + (parseFloat(ele.Bid) * data.currency.ETH).toFixed(6) + '</td>';
+            tdAsk = '<td>$' + (parseFloat(ele.Ask) * data.currency.ETH ).toFixed(6) + '</td>';
+            tdLast = '<td>$' + (parseFloat(ele.Last) * data.currency.ETH).toFixed(6) + '</td>';
+            ETHmarketTable.append('<tr>' + tdName + tdBid + tdAsk + tdLast + '</tr>')
+            ETHBTCProfit.append('<tr>' + TDETHBTC + '</tr>');
+        })
+    });
+
     socket.on('incoming', (data) => {
         let eth = [0, 0, 0];
         let sec = [0, 0, 0];
