@@ -30,21 +30,21 @@ class Socket {
         logger.info('config: ' + config.miners.length + ' rig(s) configured');
 
         socketserver.on('connection', function (socket) {
-            // socket.on('restartBtn', function (pin) {
-            //     gpio.setup(pin, gpio.DIR_OUT, on);
-            //
-            //     function on() {
-            //         setTimeout(function () {
-            //             gpio.write(pin, 1, destroy);
-            //         }, delay);
-            //     }
-            //
-            //     function destroy() {
-            //         gpio.destroy(function () {
-            //             console.log('Closed pins, now exit');
-            //         });
-            //     }
-            // });
+            socket.on('restartBtn', function (pin) {
+                gpio.setup(pin, gpio.DIR_OUT, on);
+
+                function on() {
+                    setTimeout(function () {
+                        gpio.write(pin, 1, destroy);
+                    }, delay);
+                }
+
+                function destroy() {
+                    gpio.destroy(function () {
+                        console.log('Closed pins, now exit');
+                    });
+                }
+            });
 
             socket.on('market summary', function () {
                 getMarket();
