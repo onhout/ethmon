@@ -4,9 +4,9 @@ block content
     .container-fluid
         // Miner info
         #minerInfo
-            h2.text-center= title
+            h1.display-3.text-center= title
             div.table-responsive
-                table.table.table-bordered.table-striped.table-condensed
+                table.table.table-bordered.table-striped.table-sm.table-inverse
                     thead
                         th Name
                         th Host
@@ -22,38 +22,17 @@ block content
                         th Comments
                         th Hard Reset
                     tbody
+        #bittrex_balance
+            h3.text-center Bittrex Balance
+            table.table.table-bordered.table-striped.table.sm.table-inverse
+                thead
+                    th Coin
+                    th Balance
+                    th Rate
+                    th USD
+                tbody
         p#minerSummary
         p#lastUpdated
-        .row
-            #BTCmarketTable.col-md-4
-                h2.text-center BTC-Market
-                table.table.table-striped.table-condensed
-                    thead
-                        th Market Name
-                        th Bid(Buy)
-                        th Ask(Sell)
-                        th Last
-                    tbody
-            #ETHmarketTable.col-md-4
-                h2.text-center ETH-Market
-                table.table.table-striped.table-condensed
-                    thead
-                        th Market Name
-                        th Bid(Buy)
-                        th Ask(Sell)
-                        th Last
-                    tbody
-            #BTCETHProfit.col-md-2
-                h2.text-center BTC-ETH
-                table.table.table-striped.table-condensed
-                    thead
-                        th BTC -> ETH
-                    tbody
-            #ETHBTCProfit.col-md-2
-                h2.text-center ETH-BTC
-                table.table.table-striped.table-condensed
-                    thead
-                        th ETH -> BTC
-                    tbody
+    script(src='/javascripts/monitor.js')
         // /Miner info
     // /Wrapper

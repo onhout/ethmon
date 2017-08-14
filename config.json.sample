@@ -6,35 +6,29 @@
     "web_refresh": 5000,
     "tolerance": 5,
     "temperature": 70,
-    "hashrates": false,
+    "hashrates": true,
+    "bittrex_key": "xxxx",
+    "bittrex_secret": "xxxx",
     "miners": [
         {
             "name": "rig01",
-            "host": "10.0.0.112",
+            "host": "192.168.2.213",
             "port": 3333,
             "target_eth": 118,
             "target_sec": 2700,
+            "pinnumber": 17,
             "comments": "ASUS 7950<br>Sapphire 390X<br>Sapphire 390X<br>Sapphire 390",
             "offline": false
         },
         {
             "name": "rig02",
-            "host": "10.0.0.20",
+            "host": "192.168.2.77",
             "port": 3333,
             "target_eth": 60,
             "target_sec": 1200,
+            "pinnumber": 18,
             "comments": "ASUS 7950<br>MSI 7970<br>MSI 7970",
             "offline": false
-        },
-        {
-            "name": "rig03",
-            "host": "10.0.0.102",
-            "port": 3333,
-            "hostname": "private:3333",
-            "target_eth": 19,
-            "target_sec": 395,
-            "comments": "ASUS 7950",
-            "offline": "Monitoring disabled for this host"
         }
     ]
 }

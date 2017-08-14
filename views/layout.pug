@@ -6,10 +6,23 @@ html
         link(rel="stylesheet" href="/css/bootstrap.min.css")
         link(rel='stylesheet', href='/stylesheets/style.css')
     body
-        block content
+        nav.navbar.navbar-expand-lg.navbar-dark.bg-dark
+            a.navbar-brand(href='/') EthMon
+            button.navbar-toggler(type="button" data-toggle="collapse" data-target="#navbarSupportedContent")
+                span.navbar-toggler-icon
+            div.collapse.navbar-collapse#navbarSupportedContent
+                ul.navbar-nav.mr-auto
+                    li.nav-item
+                        a.nav-link(href='/') Monitor
+                    li.nav-item
+                        a.nav-link(href='/market-simulator') Market Trade Simulator
         script(src='/js/jquery.min.js')
+        script(src='/js/popper.js')
+        script(src='/js/tooltip.js')
         script(src='/js/bootstrap.min.js')
         script(src='/socket.io/socket.io.js')
         script var socket = io();
-        script(src='/javascripts/global.js')
+        block content
+
+
 
