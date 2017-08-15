@@ -22,9 +22,10 @@ $(document).ready(() => {
         BittrexBalance.html('');
 
         data.balances.forEach((balance) => {
+            let regexPattern = '\\b(-' + balance.Currency + ')\\b';
             let tdCurrency = '<td>' + balance.Currency + '</td>';
             let tdBalance = '<td>' + balance.Balance + '</td>';
-            let xChangeRate = data.market_data.btc.find(ele => ele.MarketName.indexOf("-" + balance.Currency) !== -1) || {Last: 1};
+            let xChangeRate = data.market_data.btc.find(ele => ele.MarketName.match(new RegExp(regexPattern)), 'i') || {Last: 1};
             let tdRate = '<td>' + xChangeRate.Last + '</td>';
             let USD = '<td>$' + (balance.Balance * xChangeRate.Last * data.currency.BTC).toFixed(2) + '</td>';
             BittrexBalance.append('<tr>' + tdCurrency + tdBalance + tdRate + USD + '</tr>')

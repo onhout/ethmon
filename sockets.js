@@ -49,6 +49,7 @@ class Socket {
 
             socket.on('market summary', function () {
                 getMarket();
+                clearInterval(intervals.monitor);
                 intervals.summary = setInterval(() => {
                     getMarket()
                 }, 60000);
@@ -56,6 +57,7 @@ class Socket {
 
             socket.on('bittrex balance', function () {
                 getMarket();
+                clearInterval(intervals.summary);
                 intervals.monitor = setInterval(() => {
                     getMarket();
                 }, 60000);
@@ -257,6 +259,97 @@ class Socket {
             callback(currencies);
         }
 
+        const BittrexFee = 1.0025;
+        const FeesForBittrex = 0.9975;
+        const MinTradeBTC = 0.0005;
+
+        function BTCETHDiff(Market, currency) {
+            let BTCETH = [];
+            Market.btc.forEach((ele) => {
+                let BtcBuyPrice = (parseFloat(ele.Ask) * currency.BTC);
+                let str = ele.MarketName.slice(4, ele.MarketName.length);
+                let EthSellPrice = (Market.eth.find(name => name.MarketName.slice(4, name.MarketName.length) === str)) || 1;
+                let Percentage = (100 - ((BtcBuyPrice * BittrexFee) / (EthSellPrice.Bid * currency.ETH * BittrexFee)) * 100).toFixed(4);
+                if (parseFloat(Percentage)) {
+                    BTCETH.push({
+                        name: ele.MarketName,
+                        percent: parseFloat(Percentage),
+                        BTCBUY: ele.Ask,
+                        ETHSELL: EthSellPrice.Bid
+                    });
+                }
+            });
+            return BTCETH.sort(function (a, b) {
+                return b.percent - a.percent;
+            });
+        }
+
+        function ETHBTCDiff(Market, currency) {
+            let ETHBTC = [];
+            Market.eth.forEach((ele) => {
+                let EthBuyPrice = (parseFloat(ele.Ask) * currency.ETH);
+                let str = ele.MarketName.slice(4, ele.MarketName.length);
+                let BtcSellPrice = (Market.btc.find(name => name.MarketName.slice(4, name.MarketName.length) === str)) || 1;
+                let Percentage = (100 - ((EthBuyPrice * BittrexFee) / (BtcSellPrice.Bid * currency.BTC * BittrexFee)) * 100).toFixed(4);
+                if (parseFloat(Percentage)) {
+                    ETHBTC.push({
+                        name: ele.MarketName,
+                        percent: parseFloat(Percentage),
+                        ETHBUY: ele.Ask,
+                        BTCSELL: BtcSellPrice.Bid
+                    });
+                }
+            });
+            return ETHBTC.sort(function (a, b) {
+                return b.percent - a.percent;
+            });
+        }
+
+        let SIMULATEDBALANCE = {
+            BTC: 0,
+            ETH: 0,
+            SECONDARY: 0
+        };
+        let Trades = 0;
+
+        function startSimulation(Market, currency, balance) {
+            if (!SIMULATEDBALANCE.BTC && Trades === 0) {
+                SIMULATEDBALANCE.BTC = balance[0].Available * currency.BTC;
+            }
+
+            let BTCtoETH = BTCETHDiff(Market, currency);
+            let ETHtoBTC = ETHBTCDiff(Market, currency);
+
+            let mostProfitableBTC = config.bittrex_bot_protected_currency.indexOf(BTCtoETH[0].name.slice(4, BTCtoETH[0].name.length)) !== -1 ? BTCtoETH[1] : BTCtoETH[0];
+            let mostProfitableETH = config.bittrex_bot_protected_currency.indexOf(ETHtoBTC[0].name.slice(4, ETHtoBTC[0].name.length)) !== -1 ? ETHtoBTC[1] : ETHtoBTC[0];
+
+            if (mostProfitableBTC.percent > 0 && SIMULATEDBALANCE.BTC !== 0) {
+                SIMULATEDBALANCE.SECONDARY = (SIMULATEDBALANCE.BTC / (mostProfitableBTC.BTCBUY * currency.BTC)) * FeesForBittrex;
+                SIMULATEDBALANCE.ETH = SIMULATEDBALANCE.SECONDARY * (mostProfitableBTC.ETHSELL * currency.ETH) * FeesForBittrex;
+                SIMULATEDBALANCE.BTC = 0;
+                Trades++;
+            }
+            if (mostProfitableETH.percent > 0 && SIMULATEDBALANCE.ETH !== 0) {
+                SIMULATEDBALANCE.SECONDARY = (SIMULATEDBALANCE.ETH / (mostProfitableETH.ETHBUY * currency.ETH)) * FeesForBittrex;
+                SIMULATEDBALANCE.BTC = SIMULATEDBALANCE.SECONDARY * (mostProfitableETH.BTCSELL * currency.BTC) * FeesForBittrex;
+                SIMULATEDBALANCE.ETH = 0;
+                Trades++;
+            }
+
+            console.log(SIMULATEDBALANCE);
+            console.log("Trade Number: " + Trades);
+            // console.log(balance);
+
+
+            // console.log(BTCtoETH.sort(function(a, b){
+            //     return (parseFloat(b.percent) - parseFloat(a.percent));
+            // }));
+            // bittrex.getcurrencies(function(data){
+            //     console.log(data.result.length);
+            // })
+        }
+
+
         function getMarket() {
             bittrex.getmarketsummaries((data, err) => {
                 let ETHMarket = data.result.filter(ele => ele.MarketName.indexOf('ETH-') === 0);
@@ -265,25 +358,32 @@ class Socket {
                     let str = ele.MarketName.slice(4, ele.MarketName.length);
                     return BTCs.find(name => name.MarketName.slice(4, name.MarketName.length) === str);
                 });
+                BTCMarket.push(data.result.find(name => name.MarketName === 'BTC-ETH'));
                 if (err) {
                     return console.error(err);
                 }
                 parseCurrency(data.result, function (currency) {
                     bittrex.getbalances((balances, err) => {
+                        let market = {eth: ETHMarket, btc: BTCMarket};
+                        let balance = balances.result.filter((bal) => {
+                            return bal.Balance > MinTradeBTC;
+                        });
+                        startSimulation(market, currency, balance.filter(bal => bal.Currency === 'BTC' || bal.Currency === 'ETH'));
                         if (err) {
                             socketserver.emit('market data', {
                                 balances: balances.message,
                                 currency: currency,
-                                market_data: {eth: ETHMarket, btc: BTCMarket}
+                                market_data: market,
+                                BTCETH: BTCETHDiff(market, currency),
+                                ETHBTC: ETHBTCDiff(market, currency)
                             });
                         } else {
-                            let balance = balances.result.filter((bal) => {
-                                return bal.Balance !== 0;
-                            });
                             socketserver.emit('market data', {
                                 balances: balance,
                                 currency: currency,
-                                market_data: {eth: ETHMarket, btc: BTCMarket}
+                                market_data: market,
+                                BTCETH: BTCETHDiff(market, currency),
+                                ETHBTC: ETHBTCDiff(market, currency)
                             });
                         }
                     })
