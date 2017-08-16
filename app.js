@@ -7,6 +7,7 @@ import Server from "./server";
 import routes from "./routes/index";
 import miners from "./routes/miners";
 import marketSim from "./routes/market_sim";
+import trades from "./routes/trades";
 import moment from "moment";
 
 const config = require('./config.json');
@@ -29,6 +30,7 @@ app.use('/js', express.static(__dirname + '/node_modules/popper.js/dist/umd')); 
 app.use('/js', express.static(__dirname + '/node_modules/tooltip.js/dist/umd')); // redirect JS jQuery
 app.use('/js', express.static(__dirname + '/node_modules/bootstrap/dist/js')); // redirect bootstrap JS
 app.use('/js', express.static(__dirname + '/node_modules/jquery/dist')); // redirect JS jQuery
+app.use('/js', express.static(__dirname + '/node_modules/numeral')); // redirect JS jQuery
 app.use('/css', express.static(__dirname + '/node_modules/bootstrap/dist/css')); // redirect CSS bootstrap
 
 
@@ -51,6 +53,7 @@ app.use(function(req, res, next) {
 app.use('/', routes);
 app.use('/miners', miners);
 app.use('/market-simulator', marketSim);
+app.use('/trades', trades);
 
 // Catch 404 and forward to error handler
 app.use(function(req, res, next) {

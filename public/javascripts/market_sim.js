@@ -1,16 +1,3 @@
-// Default web refresh interval (may be changed with web_refresh config option)
-let refresh = 5000;
-
-// Default hashrate tolerance (+/- to target hashrate)
-let tolerance = 0.05;
-
-// GPU temperature monitoring threshold (zero disables monitoring)
-let temperature = 0;
-
-// Title animation index
-let animation_index = 0;
-
-
 // DOM Ready =============================================================
 
 $(document).ready(() => {
@@ -24,26 +11,34 @@ $(document).ready(() => {
         const ETHmarketTable = $('#ETHmarketTable tbody');
         const BTCETHProfit = $('#BTCETHProfit tbody');
         const ETHBTCProfit = $('#ETHBTCProfit tbody');
+        const SIMdata = $('#MarketSimulator tbody');
         BTCmarketTable.html('');
         ETHmarketTable.html('');
         BTCETHProfit.html('');
         ETHBTCProfit.html('');
+        SIMdata.html('');
         let tdBid = '';
         let tdAsk = '';
         let tdVolume = '';
         let tdName = '';
+        // let StartingBTC = data.SIM.simData.Starting_Bal;
+        // let simTrades = '<td>' + data.SIM.trades + '</td>';
+        // let simBTC = '<td>' + data.SIM.simData.BTC + '</td>';
+        // let simETH = '<td>' + data.SIM.simData.ETH + '</td>';
+        // let GAIN = '<td class="bg-success">Starting: $'+ StartingBTC.toFixed(4) +' - GAIN:'+ ((((data.SIM.simData.BTC ? data.SIM.simData.BTC : data.SIM.simData.ETH) / StartingBTC) - 1)*100).toFixed(6) + '%</td>';
+        // SIMdata.append('<tr>' + simTrades + simBTC + simETH + GAIN + '</tr>');
         data.market_data.btc.forEach((ele) => {
             tdName = '<td>' + ele.MarketName + '</td>';
-            tdBid = '<td>$' + (parseFloat(ele.Bid) * data.currency.BTC).toFixed(6) + '</td>';
-            tdAsk = '<td>$' + (parseFloat(ele.Ask) * data.currency.BTC).toFixed(6) + '</td>';
-            tdVolume = '<td>$' + (parseFloat(ele.Volume) * data.currency.BTC).toFixed(2) + '</td>';
+            tdBid = '<td>' + numeral(parseFloat(ele.Bid) * data.currency.BTC).format('$0,0.000000') + '</td>';
+            tdAsk = '<td>' + numeral(parseFloat(ele.Ask) * data.currency.BTC).format('$0,0.000000') + '</td>';
+            tdVolume = '<td>' + parseFloat(ele.BaseVolume).toFixed(2) + ' (' + numeral(ele.BaseVolume * data.currency.BTC).format('$0.0a') + ')</td>';
             BTCmarketTable.append('<tr>' + tdName + tdBid + tdAsk + tdVolume + '</tr>');
         });
         data.market_data.eth.forEach((ele) => {
             tdName = '<td>' + ele.MarketName + '</td>';
             tdBid = '<td>$' + (parseFloat(ele.Bid) * data.currency.ETH).toFixed(6) + '</td>';
             tdAsk = '<td>$' + (parseFloat(ele.Ask) * data.currency.ETH ).toFixed(6) + '</td>';
-            tdVolume = '<td>$' + (parseFloat(ele.Volume) * data.currency.ETH).toFixed(2) + '</td>';
+            tdVolume = '<td>' + parseFloat(ele.BaseVolume).toFixed(2) + ' (' + numeral(ele.BaseVolume * data.currency.ETH).format('$0.0a') + ')</td>';
             ETHmarketTable.append('<tr>' + tdName + tdBid + tdAsk + tdVolume + '</tr>');
         });
 
@@ -84,6 +79,6 @@ $(document).ready(() => {
             let TDETHBTC = '<td class="' + MARKED + '">' + PERCENTAGE + '%</td>';
             ETHBTCProfit.append('<tr>' + name + TDETHBTC + '</tr>');
 
-        })
+        });
     });
 })

@@ -1,0 +1,18 @@
+extends layout
+
+block content
+    .container-fluid
+        .row
+            #MarketTrade.col-12
+                h2.text-center Market Trades
+                .text-center
+                    button#startTrade.btn.btn-primary.btn-lg(type="button") Start
+                    button#stopTrade.btn.btn-danger.btn-lg.disabled(type="button") Stop
+                table.table.striped.table-sm.table-bordered.table-inverse
+                    thead
+                        th Trades
+                        th BTC
+                        th ETH
+                        th GAIN
+                    tbody
+    script(src="/javascripts/trades.js")
