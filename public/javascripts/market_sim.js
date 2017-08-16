@@ -29,16 +29,16 @@ $(document).ready(() => {
         // SIMdata.append('<tr>' + simTrades + simBTC + simETH + GAIN + '</tr>');
         data.market_data.btc.forEach((ele) => {
             tdName = '<td>' + ele.MarketName + '</td>';
-            tdBid = '<td>' + numeral(parseFloat(ele.Bid) * data.currency.BTC).format('$0,0.000000') + '</td>';
-            tdAsk = '<td>' + numeral(parseFloat(ele.Ask) * data.currency.BTC).format('$0,0.000000') + '</td>';
-            tdVolume = '<td>' + parseFloat(ele.BaseVolume).toFixed(2) + ' (' + numeral(ele.BaseVolume * data.currency.BTC).format('$0.0a') + ')</td>';
+            tdBid = '<td>' + numeral(ele.Ask).multiply(1000)._value + '(' + (numeral(ele.Bid * data.currency.BTC)).format('$0,0.00') + ')</td>';
+            tdAsk = '<td>' + numeral(ele.Ask).multiply(1000)._value + '(' + (numeral(ele.Ask * data.currency.BTC)).format('$0,0.00') + ')</td>'
+            tdVolume = '<td>' + numeral(ele.BaseVolume).format('0,0.00') + ' (' + numeral(ele.BaseVolume * data.currency.BTC).format('$0.0a') + ')</td>';
             BTCmarketTable.append('<tr>' + tdName + tdBid + tdAsk + tdVolume + '</tr>');
         });
         data.market_data.eth.forEach((ele) => {
             tdName = '<td>' + ele.MarketName + '</td>';
-            tdBid = '<td>$' + (parseFloat(ele.Bid) * data.currency.ETH).toFixed(6) + '</td>';
-            tdAsk = '<td>$' + (parseFloat(ele.Ask) * data.currency.ETH ).toFixed(6) + '</td>';
-            tdVolume = '<td>' + parseFloat(ele.BaseVolume).toFixed(2) + ' (' + numeral(ele.BaseVolume * data.currency.ETH).format('$0.0a') + ')</td>';
+            tdBid = '<td>' + (numeral(ele.Bid * data.ETHtoBTCRate).multiply(1000)._value).toFixed(6) + '(' + (numeral(ele.Bid * data.currency.ETH)).format('$0,0.00') + ')</td>';
+            tdAsk = '<td>' + (numeral(ele.Ask * data.ETHtoBTCRate).multiply(1000)._value).toFixed(6) + '(' + (numeral(ele.Bid * data.currency.ETH)).format('$0,0.00') + ')</td>';
+            tdVolume = '<td>' + numeral(ele.BaseVolume).format('0,0.00') + ' (' + numeral(ele.BaseVolume * data.currency.ETH).format('$0.0a') + ')</td>';
             ETHmarketTable.append('<tr>' + tdName + tdBid + tdAsk + tdVolume + '</tr>');
         });
 

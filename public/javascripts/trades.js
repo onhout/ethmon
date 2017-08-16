@@ -2,6 +2,7 @@ $(() => {
     const socket = io();
     let startBtn = $('#startTrade');
     let stopBtn = $('#stopTrade');
+    let sellAltCoins = $('#sellAltCoins');
 
     startBtn.click(function () {
         if (!$(this).hasClass('disabled')) {
@@ -12,6 +13,12 @@ $(() => {
     stopBtn.click(function () {
         if (!$(this).hasClass('disabled')) {
             socket.emit('stop trade')
+        }
+    });
+
+    sellAltCoins.click(function () {
+        if (!$(this).hasClass('disabled')) {
+            socket.emit('altcoin sell')
         }
     });
 

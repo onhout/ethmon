@@ -1,4 +1,4 @@
-import bittrex from 'node.bittrex.api';
+import bittrex from "node.bittrex.api";
 
 const config = require('./config.json');
 
@@ -49,12 +49,13 @@ class Market {
     }
 
     static BTCETHDiff(market, currency) {
+        let ETHtoBTC = currency.Last;
         let BTCETH = [];
         market.btc.forEach((ele) => {
-            let BtcBuyPrice = (parseFloat(ele.Ask) * currency.BTC);
+            let BtcBuyPrice = (parseFloat(ele.Ask));
             let str = ele.MarketName.slice(4, ele.MarketName.length);
             let EthSellPrice = (market.eth.find(name => name.MarketName.slice(4, name.MarketName.length) === str)) || 1;
-            let Percentage = (100 - ((BtcBuyPrice * Market.BittrexFee) / (EthSellPrice.Bid * currency.ETH * Market.BittrexFee)) * 100).toFixed(4);
+            let Percentage = (100 - ((BtcBuyPrice * Market.FeesForBittrex) / (EthSellPrice.Bid * ETHtoBTC * Market.FeesForBittrex)) * 100).toFixed(4);
             if (parseFloat(Percentage)) {
                 BTCETH.push({
                     name: ele.MarketName,
@@ -64,18 +65,20 @@ class Market {
                 });
             }
         });
+
         return BTCETH.sort(function (a, b) {
             return b.percent - a.percent;
         });
     }
 
     static ETHBTCDiff(market, currency) {
+        let BTCtoETH = 1 / currency.Last;
         let ETHBTC = [];
         market.eth.forEach((ele) => {
-            let EthBuyPrice = (parseFloat(ele.Ask) * currency.ETH);
+            let EthBuyPrice = (parseFloat(ele.Ask));
             let str = ele.MarketName.slice(4, ele.MarketName.length);
             let BtcSellPrice = (market.btc.find(name => name.MarketName.slice(4, name.MarketName.length) === str)) || 1;
-            let Percentage = (100 - ((EthBuyPrice * Market.BittrexFee) / (BtcSellPrice.Bid * currency.BTC * Market.BittrexFee)) * 100).toFixed(4);
+            let Percentage = (100 - ((EthBuyPrice * Market.FeesForBittrex) / (BtcSellPrice.Bid * BTCtoETH * Market.FeesForBittrex)) * 100).toFixed(4);
             if (parseFloat(Percentage)) {
                 ETHBTC.push({
                     name: ele.MarketName,
@@ -85,6 +88,7 @@ class Market {
                 });
             }
         });
+
         return ETHBTC.sort(function (a, b) {
             return b.percent - a.percent;
         });
@@ -92,7 +96,7 @@ class Market {
 
     getETHBTCMarkets(callback) {
         bittrex.getmarketsummaries((data, err) => {
-            let ETHMarket = data.result.filter(ele => (ele.MarketName.indexOf('ETH-') === 0 && ele.BaseVolume > 1500));
+            let ETHMarket = data.result.filter(ele => (ele.MarketName.indexOf('ETH-') === 0 && ele.BaseVolume > 1000));
             let BTCMarket = ETHMarket.map((ele) => {
                 let BTCs = data.result.filter(ele => ele.MarketName.indexOf('BTC-') === 0);
                 let str = ele.MarketName.slice(4, ele.MarketName.length);
@@ -115,8 +119,10 @@ class Market {
                             balances: balance,
                             currency: currency,
                             market_data: market,
-                            BTCETH: Market.BTCETHDiff(market, currency),
-                            ETHBTC: Market.ETHBTCDiff(market, currency)
+                            ETHtoBTCRate: data.result.find(name => name.MarketName === 'BTC-ETH').Last,
+                            BTCtoETHRate: (1 / data.result.find(name => name.MarketName === 'BTC-ETH').Last),
+                            BTCETH: Market.BTCETHDiff(market, data.result.find(name => name.MarketName === 'BTC-ETH')),
+                            ETHBTC: Market.ETHBTCDiff(market, data.result.find(name => name.MarketName === 'BTC-ETH'))
                         })
                     }
                 })
@@ -124,7 +130,7 @@ class Market {
         });
     }
 
-    startTrade() {
+    startTrade(socket) {
         let BUYORDERTICK = 0,
             SELLORDERTICK = 0,
             sellOptionMarketName = '',
@@ -137,14 +143,21 @@ class Market {
                 ? market_data.balances.find(n => (n.Currency === 'BTC' && n.Available > Market.MinTradeBTC))
                 : market_data.balances.find(n => (n.Currency === 'ETH' && n.Available > Market.MinTradeBTC));
 
+            let BUYRATE = 0;
+            let SELLRATE = 0;
+
             if (money) {
                 if (money.Currency === 'BTC') {
                     BUYFROM = market_data.BTCETH[0];
                     sellOptionMarketName = 'ETH-';
+                    BUYRATE = (BUYFROM.BUY).toFixed(6);
+                    SELLRATE = (BUYFROM.SELL * market_data.ETHtoBTCRate).toFixed(6);
                     console.log('Money Available: ' + money.Available + ' BTCs ($' + money.Available * market_data.currency.BTC + ')')
                 } else if (money.Currency === 'ETH') {
                     BUYFROM = market_data.ETHBTC[0];
                     sellOptionMarketName = 'BTC-';
+                    BUYRATE = (BUYFROM.BUY * market_data.ETHtoBTCRate).toFixed(6);
+                    SELLRATE = (BUYFROM.SELL).toFixed(6);
                     console.log('Money Available: ' + money.Available + ' ETHs ($' + money.Available * market_data.currency.ETH + ')')
                 }
                 buyOptions = {
@@ -152,7 +165,7 @@ class Market {
                     quantity: (money.Available / BUYFROM.BUY) * Market.FeesForBittrex,
                     rate: BUYFROM.BUY
                 };
-                console.log('Watching market: ' + BUYFROM.name + '| Rate: ' + BUYFROM.BUY + '| GAIN: ' + BUYFROM.percent + '%');
+                console.log('Top market: ' + BUYFROM.name + '| Buy: BTC ' + BUYRATE + '| Sell: BTC ' + SELLRATE + '| GAIN: ' + BUYFROM.percent + '%');
                 console.log('Buy Quantity: ' + buyOptions.quantity);
 
                 if (BUYFROM.percent > 0.5) {
@@ -211,25 +224,56 @@ class Market {
                         } else if (sellorder.result.IsOpen === true && SELLORDERTICK > 10) {
                             SELLORDERTICK = 0;
                             bittrex.cancel(sell_data.result, function (cancel) {
-                                bittrex.getticker({market: sellOptions.market}, (ticker) => {
-                                    bittrex.getbalance({currency: BUYFROM.name.slice(4, BUYFROM.name.length)}, function (sellOrderBal) {
-                                        console.log(BUYFROM.name.slice(4, BUYFROM.name.length));
-                                        console.log(sellOrderBal);
-                                        buyorder.result.Quantity = sellOrderBal.result.Available / ticker.result.Bid;
-                                        BUYFROM.SELL = ticker.result.Bid;
-                                        clearInterval(checkSellOrder);
-                                        console.log('SELL Order canceled: RESTARTING. ' + cancel.success);
-                                        sell(buyorder);
+                                if (cancel.success) {
+                                    bittrex.getticker({market: sellOptions.market}, (ticker) => {
+                                        if (ticker.result.Bid) {
+                                            bittrex.getbalance({currency: BUYFROM.name.slice(4, BUYFROM.name.length)}, function (sellOrderBal) {
+                                                if (sellOrderBal.result.Available > 0) {
+                                                    console.log(BUYFROM.name.slice(4, BUYFROM.name.length));
+                                                    console.log(sellOrderBal);
+                                                    buyorder.result.Quantity = sellOrderBal.result.Available;
+                                                    BUYFROM.SELL = ticker.result.Bid;
+                                                    clearInterval(checkSellOrder);
+                                                    console.log('SELL Order canceled: RESTARTING. ' + cancel.success);
+                                                    sell(buyorder);
+                                                }
+                                            });
+                                        }
                                     });
-                                });
+                                }
                             });
                         }
                     })
                 }, 1000)
             })
         }
-
     }
+
+    altCoinSellOff() {
+        bittrex.getbalances((balances) => {
+            balances.result.forEach((bal) => {
+                if (bal.Currency != 'BTC') {
+                    bittrex.getticker({market: 'BTC-' + bal.Currency}, (ticker) => {
+                        let sellOff = {
+                            market: "BTC-" + bal.Currency,
+                            quantity: bal.Available,
+                            rate: ticker.result.Bid
+                        };
+                        bittrex.selllimit(sellOff, (sell, err) => {
+                            if (err) {
+                                return 0;
+                            } else {
+                                console.log("SOLD ALL ALTCOINS TO BTC")
+                            }
+                        })
+                    })
+                }
+            })
+
+        })
+    }
+
+
 }
 
 export default Market;

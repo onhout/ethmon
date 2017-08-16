@@ -2,7 +2,7 @@
  * Created by pl on 8/4/17.
  */
 import socket from "socket.io";
-import Market from './market_trade';
+import Market from "./market_trade";
 
 const net = require('net');
 const moment = require('moment');
@@ -69,7 +69,7 @@ class Socket {
             });
 
             socket.on('start trade', () => {
-                bittrex_market.startTrade();
+                bittrex_market.startTrade(socket);
                 socket.emit('btnState', {start: true, stop: false});
                 intervals.trade = setInterval(() => {
                     bittrex_market.startTrade()
@@ -79,6 +79,10 @@ class Socket {
             socket.on('stop trade', () => {
                 socket.emit('btnState', {start: false, stop: true});
                 clearInterval(intervals.trade);
+            });
+
+            socket.on('altcoin sell', () => {
+                bittrex_market.altCoinSellOff();
             })
 
         });
