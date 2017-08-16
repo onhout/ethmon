@@ -223,8 +223,10 @@ class Market {
                             console.log("ALL DONE!!!");
                         } else if (sellorder.result.IsOpen === true && SELLORDERTICK > 10) {
                             SELLORDERTICK = 0;
-                            bittrex.cancel(sell_data.result, function (cancel) {
-                                if (cancel.success) {
+                            bittrex.cancel(sell_data.result, function (cancel, err) {
+                                if (err) {
+                                    console.log(err);
+                                } else if (cancel.success) {
                                     bittrex.getticker({market: sellOptions.market}, (ticker) => {
                                         if (ticker.result.Bid) {
                                             bittrex.getbalance({currency: BUYFROM.name.slice(4, BUYFROM.name.length)}, function (sellOrderBal) {
