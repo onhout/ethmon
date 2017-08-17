@@ -73,7 +73,7 @@ class Socket {
                 socket.emit('btnState', {start: true, stop: false});
                 intervals.trade = setInterval(() => {
                     bittrex_market.startTrade()
-                }, 10000)
+                }, 30000)
             });
 
             socket.on('stop trade', () => {

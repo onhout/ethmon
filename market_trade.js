@@ -190,7 +190,7 @@ class Market {
                 console.log('Buy Quantity: ' + buyOptions.quantity);
 
                 if (BUYFROM.percent > 0.5) {
-                    console.log('=====================BUYING: ' + BUYFROM.name + '==============================');
+                    console.log('=========BUYING: ' + buyOptions.market + '==QUANTITY: ' + buyOptions.quantity.toFixed(6) + '==RATE: ' + buyOptions.rate.toFixed(6) + '=========');
                     bittrex.buylimit(buyOptions, function (buy_data, err) {
                         if (err) {
                             console.log(err);
@@ -198,19 +198,25 @@ class Market {
                         }
                         let checkOrder = setInterval(() => {
                             bittrex.getorder(buy_data.result, function (buyorder, err) {
-                                BUYORDERTICK++;
-                                console.log(BUYORDERTICK + ' : BUY Order still open in market: ' + BUYFROM.name + ': ' + buyorder.result.IsOpen);
-                                if (buyorder.result.IsOpen === false && BUYORDERTICK < 10) {
-                                    BUYORDERTICK = 0;
-                                    clearInterval(checkOrder);
-                                    sell(buyorder);
-                                } else if (buyorder.result.IsOpen === true && BUYORDERTICK > 10) {
-                                    BUYORDERTICK = 0;
-                                    bittrex.cancel(buy_data.result, function (cancel) {
-                                        clearInterval(checkOrder);
-                                        console.log("BUY Order canceled: " + cancel.success);
-                                        return 0;
-                                    })
+                                if (err) {
+                                    console.log(err);
+                                    return 0;
+                                } else {
+                                    BUYORDERTICK++;
+                                    if (buyorder.result) {
+                                        console.log(BUYORDERTICK + ' : BUY Order still open in market: ' + BUYFROM.name + ': ' + buyorder.result.IsOpen);
+                                        if (buyorder.result.IsOpen === false && BUYORDERTICK < 10) {
+                                            BUYORDERTICK = 0;
+                                            clearInterval(checkOrder);
+                                            sell(buyorder);
+                                        } else if (buyorder.result.IsOpen === true && BUYORDERTICK >= 10) {
+                                            BUYORDERTICK = 0;
+                                            bittrex.cancel(buy_data.result, function (cancel) {
+                                                clearInterval(checkOrder);
+                                                console.log("BUY Order canceled: " + cancel.success);
+                                            })
+                                        }
+                                    }
                                 }
                             });
                         }, 1000)
@@ -219,85 +225,76 @@ class Market {
             }
         });
 
+        function safe_sell() {
+            setTimeout(() => {
+                bittrex.getbalances((SELLBAL) => {
+                    SELLBAL.result.forEach((D) => {
+                        if (D.Currency != 'BTC' && D.Currency != 'ETH') {
+                            bittrex.getticker({market: sellOptionMarketName + D.Currency}, (ticker) => {
+                                let sellOff = {
+                                    market: sellOptionMarketName + D.Currency,
+                                    quantity: D.Balance,
+                                    rate: ticker.result.Bid
+                                };
+                                bittrex.selllimit(sellOff, (sell, err) => {
+                                    if (err) {
+                                        return 0;
+                                    } else {
+                                        console.log("SOLD TO " + sellOptionMarketName + D.Currency + ' @ ' + ticker.result.Bid);
+                                    }
+                                })
+                            })
+                        }
+                    })
+
+                })
+            }, 3000);
+        }
+
         function sell(buyorder) {
             sellOptions = {
                 market: sellOptionMarketName + BUYFROM.name.slice(4, BUYFROM.name.length),
                 quantity: buyorder.result.Quantity,
                 rate: BUYFROM.SELL
             };
-            console.log(sellOptions);
-            console.log('=====================SELLING: ' + sellOptions.market + '==============================');
+            console.log('=========SELLING: ' + sellOptions.market + '==QUANTITY: ' + sellOptions.quantity.toFixed(6) + '==RATE: ' + sellOptions.rate.toFixed(6) + '=========');
             bittrex.selllimit(sellOptions, function (sell_data, err) {
                 if (err) {
                     console.log(err);
-                }
-                let checkSellOrder = setInterval(() => {
-                    bittrex.getorder(sell_data.result, function (sellorder, err) {
-                        if (err) {
-                            obj.altCoinSellOff();
-                        }
-                        SELLORDERTICK++;
-                        console.log(SELLORDERTICK + ' : SELL Order still open in market: ' + sellOptionMarketName + ': ' + sellorder.result.IsOpen);
-                        if (sellorder.result.IsOpen === false && SELLORDERTICK < 6) {
-                            SELLORDERTICK = 0;
-                            clearInterval(checkSellOrder);
-                            console.log("ALL DONE!!!");
-                        } else if (sellorder.result.IsOpen === true && SELLORDERTICK > 6) {
-                            SELLORDERTICK = 0;
-                            clearInterval(checkSellOrder);
-                            bittrex.cancel(sell_data.result, function (cancel, err) {
-                                console.log('Cancelling Sell Order and getting the most recent price for quick sale...');
-                                if (err) {
-                                    console.log(err);
-                                } else if (cancel.success) {
-                                    setTimeout(() => {
-                                        bittrex.getbalances((SELLBAL) => {
-                                            SELLBAL.result.forEach((D) => {
-                                                if (D.Currency != 'BTC') {
-                                                    bittrex.getticker({market: 'BTC-' + D.Currency}, (ticker) => {
-                                                        let sellOff = {
-                                                            market: "BTC-" + D.Currency,
-                                                            quantity: D.Balance,
-                                                            rate: ticker.result.Bid
-                                                        };
-                                                        bittrex.selllimit(sellOff, (sell, err) => {
-                                                            if (err) {
-                                                                return 0;
-                                                            } else {
-                                                                console.log("SOLD ALL ALTCOINS TO BTC")
-                                                            }
-                                                        })
-                                                    })
-                                                }
-                                            })
-
-                                        })
-                                    }, 3000);
-
-                                    // bittrex.getticker({market: sellOptions.market}, (ticker) => {
-                                    //     if (ticker.result.Bid) {
-                                    //         bittrex.getbalance({currency: BUYFROM.name.slice(4, BUYFROM.name.length)}, function (sellOrderBal) {
-                                    //             if (sellOrderBal.result.Available > 0) {
-                                    //                 SELLORDERTICK = 0;
-                                    //                 console.log('Getting current currency' + BUYFROM.name.slice(4, BUYFROM.name.length));
-                                    //                 console.log(sellOrderBal);
-                                    //                 buyorder.result.Quantity = sellOrderBal.result.Available;
-                                    //                 BUYFROM.SELL = ticker.result.Bid;
-                                    //                 clearInterval(checkSellOrder);
-                                    //                 console.log('SELL Order canceled: RESTARTING. ' + cancel.success);
-                                    //                 obj.altCoinSellOff()
-                                    //             }
-                                    //         });
-                                    //     }
-                                    // });
+                    safe_sell()
+                } else {
+                    let checkSellOrder = setInterval(() => {
+                        bittrex.getorder(sell_data.result, function (sellorder, err) {
+                            if (err) {
+                                console.log(err);
+                                safe_sell()
+                            } else {
+                                SELLORDERTICK++;
+                                if (sellorder.result) {
+                                    console.log(SELLORDERTICK + ' : SELL Order still open in market: ' + sellOptionMarketName + ': ' + sellorder.result.IsOpen);
+                                    if (sellorder.result.IsOpen === false && SELLORDERTICK < 5) {
+                                        SELLORDERTICK = 0;
+                                        clearInterval(checkSellOrder);
+                                        console.log("ALL DONE!!!");
+                                    } else if (sellorder.result.IsOpen === true && SELLORDERTICK >= 5) {
+                                        SELLORDERTICK = 0;
+                                        clearInterval(checkSellOrder);
+                                        bittrex.cancel(sell_data.result, function (cancel, err) {
+                                            console.log('Cancelling Sell Order and getting the most recent price for quick sale...');
+                                            if (err) {
+                                                console.log(err);
+                                            } else if (cancel.success) {
+                                                safe_sell();
+                                            }
+                                        });
+                                    }
                                 }
-                            });
-                        }
-                    })
-                }, 1000)
+                            }
+                        })
+                    }, 1000)
+                }
             })
         }
-
     }
 
     altCoinSellOff() {
