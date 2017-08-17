@@ -272,7 +272,7 @@ class Market {
                                             })
 
                                         })
-                                    }, 5000);
+                                    }, 3000);
 
                                     // bittrex.getticker({market: sellOptions.market}, (ticker) => {
                                     //     if (ticker.result.Bid) {
