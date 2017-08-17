@@ -11,16 +11,28 @@ class Market {
             'apikey': config.bittrex_key,
             'apisecret': config.bittrex_secret
         });
+
+        this.startingBTC = 0;
+        this.startingETH = 0;
     }
 
+    /**
+     * @return {number}
+     */
     static get BittrexFee() {
         return 1.0025;
     }
 
+    /**
+     * @return {number}
+     */
     static get FeesForBittrex() {
         return 0.9975
     }
 
+    /**
+     * @return {number}
+     */
     static get MinTradeBTC() {
         return 0.0005
     }
@@ -131,6 +143,7 @@ class Market {
     }
 
     startTrade(socket) {
+        let obj = this;
         let BUYORDERTICK = 0,
             SELLORDERTICK = 0,
             sellOptionMarketName = '',
@@ -148,17 +161,25 @@ class Market {
 
             if (money) {
                 if (money.Currency === 'BTC') {
+                    if (obj.startingBTC === 0) {
+                        obj.startingBTC = money.Available;
+                    }
                     BUYFROM = market_data.BTCETH[0];
                     sellOptionMarketName = 'ETH-';
                     BUYRATE = (BUYFROM.BUY).toFixed(6);
                     SELLRATE = (BUYFROM.SELL * market_data.ETHtoBTCRate).toFixed(6);
-                    console.log('Money Available: ' + money.Available + ' BTCs ($' + money.Available * market_data.currency.BTC + ')')
+                    console.log('Starting Money: ' + obj.startingBTC + ' BTCs');
+                    console.log('Money Available: ' + money.Available + ' BTCs ($' + money.Available * market_data.currency.BTC + ') | Made: ' + (1 - (obj.startingBTC / money.Available)));
                 } else if (money.Currency === 'ETH') {
+                    if (obj.startingETH === 0) {
+                        obj.startingETH = money.Available;
+                    }
                     BUYFROM = market_data.ETHBTC[0];
                     sellOptionMarketName = 'BTC-';
                     BUYRATE = (BUYFROM.BUY * market_data.ETHtoBTCRate).toFixed(6);
                     SELLRATE = (BUYFROM.SELL).toFixed(6);
-                    console.log('Money Available: ' + money.Available + ' ETHs ($' + money.Available * market_data.currency.ETH + ')')
+                    console.log('Starting Money: ' + obj.startingETH + ' ETHs');
+                    console.log('Money Available: ' + money.Available + ' ETHs ($' + money.Available * market_data.currency.ETH + ') | Made: ' + (1 - (obj.startingETH / money.Available)));
                 }
                 buyOptions = {
                     market: BUYFROM.name,
@@ -196,7 +217,7 @@ class Market {
                     })
                 }
             }
-        })
+        });
 
         function sell(buyorder) {
             sellOptions = {
@@ -213,7 +234,7 @@ class Market {
                 let checkSellOrder = setInterval(() => {
                     bittrex.getorder(sell_data.result, function (sellorder, err) {
                         if (err) {
-                            sell(buyorder);
+                            obj.altCoinSellOff();
                         }
                         SELLORDERTICK++;
                         console.log(SELLORDERTICK + ' : SELL Order still open in market: ' + sellOptionMarketName + ': ' + sellorder.result.IsOpen);
@@ -222,26 +243,29 @@ class Market {
                             clearInterval(checkSellOrder);
                             console.log("ALL DONE!!!");
                         } else if (sellorder.result.IsOpen === true && SELLORDERTICK > 10) {
-                            SELLORDERTICK = 0;
                             bittrex.cancel(sell_data.result, function (cancel, err) {
+                                console.log('Cancelling Sell Order and getting the most recent price for quick sale...');
                                 if (err) {
                                     console.log(err);
                                 } else if (cancel.success) {
-                                    bittrex.getticker({market: sellOptions.market}, (ticker) => {
-                                        if (ticker.result.Bid) {
-                                            bittrex.getbalance({currency: BUYFROM.name.slice(4, BUYFROM.name.length)}, function (sellOrderBal) {
-                                                if (sellOrderBal.result.Available > 0) {
-                                                    console.log(BUYFROM.name.slice(4, BUYFROM.name.length));
-                                                    console.log(sellOrderBal);
-                                                    buyorder.result.Quantity = sellOrderBal.result.Available;
-                                                    BUYFROM.SELL = ticker.result.Bid;
-                                                    clearInterval(checkSellOrder);
-                                                    console.log('SELL Order canceled: RESTARTING. ' + cancel.success);
-                                                    sell(buyorder);
-                                                }
-                                            });
-                                        }
-                                    });
+                                    insideSellAltCoins();
+                                    clearInterval(checkSellOrder);
+                                    // bittrex.getticker({market: sellOptions.market}, (ticker) => {
+                                    //     if (ticker.result.Bid) {
+                                    //         bittrex.getbalance({currency: BUYFROM.name.slice(4, BUYFROM.name.length)}, function (sellOrderBal) {
+                                    //             if (sellOrderBal.result.Available > 0) {
+                                    //                 SELLORDERTICK = 0;
+                                    //                 console.log('Getting current currency' + BUYFROM.name.slice(4, BUYFROM.name.length));
+                                    //                 console.log(sellOrderBal);
+                                    //                 buyorder.result.Quantity = sellOrderBal.result.Available;
+                                    //                 BUYFROM.SELL = ticker.result.Bid;
+                                    //                 clearInterval(checkSellOrder);
+                                    //                 console.log('SELL Order canceled: RESTARTING. ' + cancel.success);
+                                    //                 obj.altCoinSellOff()
+                                    //             }
+                                    //         });
+                                    //     }
+                                    // });
                                 }
                             });
                         }
@@ -249,6 +273,31 @@ class Market {
                 }, 1000)
             })
         }
+
+        function insideSellAltCoins() {
+            bittrex.getbalances((balances) => {
+                balances.result.forEach((bal) => {
+                    if (bal.Currency != 'BTC') {
+                        bittrex.getticker({market: 'BTC-' + bal.Currency}, (ticker) => {
+                            let sellOff = {
+                                market: "BTC-" + bal.Currency,
+                                quantity: bal.Available,
+                                rate: ticker.result.Bid
+                            };
+                            bittrex.selllimit(sellOff, (sell, err) => {
+                                if (err) {
+                                    return 0;
+                                } else {
+                                    console.log("SOLD ALL ALTCOINS TO BTC")
+                                }
+                            })
+                        })
+                    }
+                })
+
+            })
+        }
+
     }
 
     altCoinSellOff() {
@@ -265,7 +314,7 @@ class Market {
                             if (err) {
                                 return 0;
                             } else {
-                                console.log("SOLD ALL ALTCOINS TO BTC")
+                                console.log("SOLD ALL ALTCOINS TO BTC");
                             }
                         })
                     })
