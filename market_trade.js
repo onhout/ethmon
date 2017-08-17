@@ -238,18 +238,42 @@ class Market {
                         }
                         SELLORDERTICK++;
                         console.log(SELLORDERTICK + ' : SELL Order still open in market: ' + sellOptionMarketName + ': ' + sellorder.result.IsOpen);
-                        if (sellorder.result.IsOpen === false && SELLORDERTICK < 10) {
+                        if (sellorder.result.IsOpen === false && SELLORDERTICK < 6) {
                             SELLORDERTICK = 0;
                             clearInterval(checkSellOrder);
                             console.log("ALL DONE!!!");
-                        } else if (sellorder.result.IsOpen === true && SELLORDERTICK > 10) {
+                        } else if (sellorder.result.IsOpen === true && SELLORDERTICK > 6) {
+                            SELLORDERTICK = 0;
+                            clearInterval(checkSellOrder);
                             bittrex.cancel(sell_data.result, function (cancel, err) {
                                 console.log('Cancelling Sell Order and getting the most recent price for quick sale...');
                                 if (err) {
                                     console.log(err);
                                 } else if (cancel.success) {
-                                    insideSellAltCoins();
-                                    clearInterval(checkSellOrder);
+                                    setTimeout(() => {
+                                        bittrex.getbalances((SELLBAL) => {
+                                            SELLBAL.result.forEach((D) => {
+                                                if (D.Currency != 'BTC') {
+                                                    bittrex.getticker({market: 'BTC-' + D.Currency}, (ticker) => {
+                                                        let sellOff = {
+                                                            market: "BTC-" + D.Currency,
+                                                            quantity: D.Balance,
+                                                            rate: ticker.result.Bid
+                                                        };
+                                                        bittrex.selllimit(sellOff, (sell, err) => {
+                                                            if (err) {
+                                                                return 0;
+                                                            } else {
+                                                                console.log("SOLD ALL ALTCOINS TO BTC")
+                                                            }
+                                                        })
+                                                    })
+                                                }
+                                            })
+
+                                        })
+                                    }, 5000);
+
                                     // bittrex.getticker({market: sellOptions.market}, (ticker) => {
                                     //     if (ticker.result.Bid) {
                                     //         bittrex.getbalance({currency: BUYFROM.name.slice(4, BUYFROM.name.length)}, function (sellOrderBal) {
@@ -271,30 +295,6 @@ class Market {
                         }
                     })
                 }, 1000)
-            })
-        }
-
-        function insideSellAltCoins() {
-            bittrex.getbalances((balances) => {
-                balances.result.forEach((bal) => {
-                    if (bal.Currency != 'BTC') {
-                        bittrex.getticker({market: 'BTC-' + bal.Currency}, (ticker) => {
-                            let sellOff = {
-                                market: "BTC-" + bal.Currency,
-                                quantity: bal.Available,
-                                rate: ticker.result.Bid
-                            };
-                            bittrex.selllimit(sellOff, (sell, err) => {
-                                if (err) {
-                                    return 0;
-                                } else {
-                                    console.log("SOLD ALL ALTCOINS TO BTC")
-                                }
-                            })
-                        })
-                    }
-                })
-
             })
         }
 
