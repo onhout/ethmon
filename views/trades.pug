@@ -2,18 +2,64 @@ extends layout
 
 block content
     .container-fluid
-        .row
-            #MarketTrade.col-12
-                h2.text-center Market Trades
-                .text-center
-                    button#startTrade.btn.btn-primary.btn-lg(type="button") Start
-                    button#stopTrade.btn.btn-danger.btn-lg.disabled(type="button") Stop
-                    button#sellAltCoins.btn.btn-info.btn-lg(type="button") Sell Altcoins
-                table.table.striped.table-sm.table-bordered.table-inverse
-                    thead
-                        th Trades
-                        th BTC
-                        th ETH
-                        th GAIN
-                    tbody
+        #MarketTrade.col-12
+            h2.text-center Market Trades
+            .text-center
+                button#startTrade.btn.btn-primary.btn-lg(type="button") Start
+                button#stopTrade.btn.btn-danger.btn-lg.disabled(type="button") Stop
+                button#sellAltCoins.btn.btn-info.btn-lg(type="button") Sell Altcoins
+            .row(style="margin-top: 10px")
+                .col-3 Starting (BTC):
+                    h6
+                        strong#startingBTC 0
+                .col-3 Starting (ETH):
+                    h6
+                        strong#startingETH 0
+                .col-3 Total Trade:
+                    h6
+                        strong#totalTrade 0
+                .col-3 Total $:
+                    h6
+                        strong#totalDollar 0
+            .row(style="margin-top: 10px")
+                ul.list-group.col-6#CURRENT_INFO
+                    li.list-group-item.list-group-item-primary.text-center Current Stats
+                    li.list-group-item
+                        .row
+                            span.col-6 Current (BTC):
+                            span.col-6#currentBTC 0
+                    li.list-group-item
+                        .row
+                            span.col-6 Current (ETH):
+                            span.col-6#currentETH 0
+                    li.list-group-item
+                        .row
+                            span.col-6 Percentage Earned (BTC):
+                            span.col-6#percentageEarnedBTC 0
+                    li.list-group-item
+                        .row
+                            span.col-6 Percentage Earned (ETH):
+                            span.col-6#percentageEarnedETH 0
+                ul.list-group.col-6
+                    li.list-group-item.list-group-item-primary.text-center Current Target
+                    li.list-group-item
+                        .row
+                            span.col-6 Current Top Market:
+                            span.col-6#currentMarket
+                    li.list-group-item
+                        .row
+                            span.col-6 Current Buy Rate:
+                            span.col-6#currentMarketBuyRate
+                    li.list-group-item
+                        .row
+                            span.col-6 Current Sell Rate:
+                            span.col-6#currentMarketSellRate
+                    li.list-group-item
+                        .row
+                            span.col-6 Current BUY/SELL Quantity:
+                            span.col-6#currentQuantity
+                    li.list-group-item
+                        .row
+                            span.col-6 Proposed Percent Gain:
+                            span.col-6#currentPercent
     script(src="/javascripts/trades.js")
