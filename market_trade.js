@@ -211,7 +211,7 @@ class Market {
                     currentPercent: BUYFROM.percent,
                     percentGain: percentageMade
                 })
-                if (BUYFROM.percent > 0.5) {
+                if (BUYFROM.percent > 0.75) {
                     bittrex.getorderbook({market: buyOptions.market, type: 'both'}, (data) => {
                         if (data.result.buy[0].Quantity > buyOptions.quantity && data.result.sell[0].Quantity > (buyOptions.quantity * 2)) {
                             console.log('=========BUYING: ' + buyOptions.market + '==QUANTITY: ' + buyOptions.quantity.toFixed(6) + '==RATE: ' + buyOptions.rate.toFixed(6) + '=========');
@@ -313,7 +313,7 @@ class Market {
                     })
 
                 })
-            }, 3000);
+            }, 2000);
         }
 
         function sell(buyorder) {
@@ -337,11 +337,11 @@ class Market {
                                 SELLORDERTICK++;
                                 if (sellorder.result) {
                                     console.log(SELLORDERTICK + ' : SELL Order still open in market: ' + sellOptionMarketName + ': ' + sellorder.result.IsOpen);
-                                    if (sellorder.result.IsOpen === false && SELLORDERTICK < 5) {
+                                    if (sellorder.result.IsOpen === false && SELLORDERTICK < 3) {
                                         SELLORDERTICK = 0;
                                         clearInterval(checkSellOrder);
                                         console.log("ALL DONE!!!");
-                                    } else if (sellorder.result.IsOpen === true && SELLORDERTICK >= 5) {
+                                    } else if (sellorder.result.IsOpen === true && SELLORDERTICK >= 3) {
                                         SELLORDERTICK = 0;
                                         clearInterval(checkSellOrder);
                                         bittrex.cancel(sell_data.result, function (cancel, err) {
