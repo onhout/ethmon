@@ -265,26 +265,28 @@ class Market {
                         })
                     })
                 });
-                bittrex.getbalances((balances) => {
-                    balances.result.forEach((bal) => {
-                        if (bal.Currency != 'BTC') {
-                            bittrex.getticker({market: 'BTC-' + bal.Currency}, (ticker) => {
-                                let sellOff = {
-                                    market: "BTC-" + bal.Currency,
-                                    quantity: bal.Available,
-                                    rate: ticker.result.Bid
-                                };
-                                bittrex.selllimit(sellOff, (sell, err) => {
-                                    if (err) {
-                                        return 0;
-                                    } else {
-                                        console.log("RESET AND SELL ALL COINS TO BTC");
-                                    }
+                setTimeout(() => {
+                    bittrex.getbalances((balances) => {
+                        balances.result.forEach((bal) => {
+                            if (bal.Currency != 'BTC') {
+                                bittrex.getticker({market: 'BTC-' + bal.Currency}, (ticker) => {
+                                    let sellOff = {
+                                        market: "BTC-" + bal.Currency,
+                                        quantity: bal.Available,
+                                        rate: ticker.result.Bid
+                                    };
+                                    bittrex.selllimit(sellOff, (sell, err) => {
+                                        if (err) {
+                                            return 0;
+                                        } else {
+                                            console.log("RESET AND SELL ALL COINS TO BTC");
+                                        }
+                                    })
                                 })
-                            })
-                        }
-                    })
-                });
+                            }
+                        })
+                    });
+                }, 2000)
             }
         });
 
@@ -361,27 +363,41 @@ class Market {
     }
 
     altCoinSellOff() {
-        bittrex.getbalances((balances) => {
-            balances.result.forEach((bal) => {
-                if (bal.Currency != 'BTC') {
-                    bittrex.getticker({market: 'BTC-' + bal.Currency}, (ticker) => {
-                        let sellOff = {
-                            market: "BTC-" + bal.Currency,
-                            quantity: bal.Available,
-                            rate: ticker.result.Bid
-                        };
-                        bittrex.selllimit(sellOff, (sell, err) => {
-                            if (err) {
-                                return 0;
-                            } else {
-                                console.log("SOLD ALL ALTCOINS TO BTC");
-                            }
-                        })
-                    })
-                }
+        bittrex.getopenorders({}, function (data) {
+            data.forEach((dat) => {
+                bittrex.cancel({uuid: dat.OrderUuid}, (cancelEverything, err) => {
+                    if (err) {
+                        return 0;
+                    } else {
+                        console.log("Order that was stuck was released.")
+                    }
+                })
             })
+        });
+        setTimeout(() => {
+            bittrex.getbalances((balances) => {
+                balances.result.forEach((bal) => {
+                    if (bal.Currency != 'BTC') {
+                        bittrex.getticker({market: 'BTC-' + bal.Currency}, (ticker) => {
+                            let sellOff = {
+                                market: "BTC-" + bal.Currency,
+                                quantity: bal.Available,
+                                rate: ticker.result.Bid
+                            };
+                            bittrex.selllimit(sellOff, (sell, err) => {
+                                if (err) {
+                                    return 0;
+                                } else {
+                                    console.log("SOLD ALL ALTCOINS TO BTC");
+                                }
+                            })
+                        })
+                    }
+                })
 
-        })
+            })
+        }, 2000)
+
     }
 
 
