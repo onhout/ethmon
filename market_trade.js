@@ -254,7 +254,37 @@ class Market {
                     });
                 }
             } else {
-                console.log('CHECK YOUR MONEY');
+                bittrex.getopenorders({}, function (data) {
+                    data.forEach((dat) => {
+                        bittrex.cancel({uuid: dat.OrderUuid}, (cancelEverything, err) => {
+                            if (err) {
+                                return 0;
+                            } else {
+                                console.log("Order that was stuck was released.")
+                            }
+                        })
+                    })
+                });
+                bittrex.getbalances((balances) => {
+                    balances.result.forEach((bal) => {
+                        if (bal.Currency != 'BTC') {
+                            bittrex.getticker({market: 'BTC-' + bal.Currency}, (ticker) => {
+                                let sellOff = {
+                                    market: "BTC-" + bal.Currency,
+                                    quantity: bal.Available,
+                                    rate: ticker.result.Bid
+                                };
+                                bittrex.selllimit(sellOff, (sell, err) => {
+                                    if (err) {
+                                        return 0;
+                                    } else {
+                                        console.log("RESET AND SELL ALL COINS TO BTC");
+                                    }
+                                })
+                            })
+                        }
+                    })
+                });
             }
         });
 
