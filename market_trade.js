@@ -147,6 +147,7 @@ class Market {
     }
 
     startTrade(socket) {
+        socket.emit('btnState', {start: true, stop: false});
         let obj = this;
         let BUYORDERTICK = 0,
             SELLORDERTICK = 0,
