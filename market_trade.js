@@ -255,7 +255,7 @@ class Market {
                 }
             } else {
                 bittrex.getopenorders({}, function (data) {
-                    data.forEach((dat) => {
+                    data.result.forEach((dat) => {
                         bittrex.cancel({uuid: dat.OrderUuid}, (cancelEverything, err) => {
                             if (err) {
                                 return 0;
@@ -364,7 +364,7 @@ class Market {
 
     altCoinSellOff() {
         bittrex.getopenorders({}, function (data) {
-            data.forEach((dat) => {
+            data.result.forEach((dat) => {
                 bittrex.cancel({uuid: dat.OrderUuid}, (cancelEverything, err) => {
                     if (err) {
                         return 0;
