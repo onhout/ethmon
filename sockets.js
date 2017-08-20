@@ -3,6 +3,7 @@
  */
 import socket from "socket.io";
 import Market from "./market_trade";
+import Trade from "./market_trade_v2";
 
 const net = require('net');
 const moment = require('moment');
@@ -29,6 +30,7 @@ class Socket {
         let intervals = {};
 
         let bittrex_market = new Market();
+        let trade = new Trade;
 
         socketserver.on('connection', function (socket) {
             // socket.on('restartBtn', function (pin) {
@@ -69,9 +71,11 @@ class Socket {
             });
 
             socket.on('start trade', () => {
-                bittrex_market.startTrade(socketserver);
+                // bittrex_market.startTrade(socketserver);
+                trade.startTrade(socketserver);
                 intervals.trade = setInterval(() => {
-                    bittrex_market.startTrade(socketserver)
+                    // bittrex_market.startTrade(socketserver)
+                    trade.startTrade(socketserver);
                 }, 30000);
             });
 
