@@ -1,4 +1,5 @@
 import bittrex from "node.bittrex.api";
+import moment from "moment";
 
 const config = require('./config.json');
 
@@ -18,7 +19,8 @@ class Tradev3 {
         this.successfulTrades = 0;
         this.totalDollar = 0;
         this.percentageEarnedBTC = 0;
-        this.percentageEarnedETH = 0
+        this.percentageEarnedETH = 0;
+        this.startTime = moment().format("MMM Do YY, h:mm a");
     }
 
     /**
@@ -176,7 +178,7 @@ class Tradev3 {
                     SELLFROM.SELLRATE = (SELLFROM.SELL * market_data.BTCtoETHRate).toFixed(8);
                     SELLFROM.BtoERate = market_data.BTCtoETHRate;
 
-                    console.log('Starting Money: ' + obj.startingBTC + ' BTCs');
+                    console.log('Starting Money: ' + obj.startingBTC + ' BTCs @ Time: ' + obj.startTime);
                     console.log('Money Available: ' + money.Available + ' BTCs ($' + money.Available * market_data.currency.BTC + ') | Made: ' + (1 - (obj.startingBTC / money.Available)));
                     console.log('Top market(BTC-ETH): ' + BUYFROM.name + ' | Buy: BTC ' + BUYFROM.BUYRATE + ' | Sell: BTC ' + BUYFROM.SELLRATE);
                     console.log('Top market(ETH-BTC): ' + SELLFROM.name + ' | Buy: ETH ' + SELLFROM.BUYRATE + ' | Sell: ETH ' + SELLFROM.SELLRATE);
