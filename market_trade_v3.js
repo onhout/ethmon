@@ -147,7 +147,15 @@ class Tradev3 {
         let BUYORDERTICK = 0,
             sellOptionMarketName = '',
             BUYFROM = {},
-            SELLFROM = {};
+            SELLFROM = {},
+            //Made sure the buy and sell is 3 times the amount, orders can be gone very quickly, tweak this value!
+            orderQuantityMul = 3,
+            //Tweak this value since the potential BTC value will have to be higher than the original one
+            tradeTriggerPercentage = 1.001,
+            //Each sell takes 3 seconds to prepare because the order needs to be completely filled
+            countDownToSell = 3000,
+            //When on Eth side, how long should Eth stay as Eth.
+            countDownToSellFROMBUY = 6000;
 
         this.getETHBTCMarkets((market_data) => {
             bittrex.getbalance({currency: "BTC"}, (MONEY) => {
@@ -198,7 +206,7 @@ class Tradev3 {
                     //     currentPercent: BUYFROM.percent,
                     //     percentGain: percentageMade
                     // })
-                    if (BITEREE > (money.Available * 1.001)) {
+                    if (BITEREE > (money.Available * tradeTriggerPercentage)) {
                         BUYFROM.buyOptions = {
                             market: BUYFROM.name,
                             quantity: (money.Available / BUYFROM.BUY) * Tradev3.FeesForBittrex,
@@ -207,9 +215,9 @@ class Tradev3 {
                         bittrex.getorderbook({market: BUYFROM.name, type: 'both'}, (buy_order_book) => {
                             bittrex.getorderbook({market: SELLFROM.name, type: 'both'}, (sell_order_book) => {
                                 if (buy_order_book.result.buy[0].Quantity > BUYFROM.buyOptions.quantity &&
-                                    buy_order_book.result.sell[0].Quantity > (BUYFROM.buyOptions.quantity * 3) &&
-                                    sell_order_book.result.buy[0].Quantity > BuyEthQuantity * 3 &&
-                                    sell_order_book.result.sell[0].Quantity > BuyEthQuantity * 3) {
+                                    buy_order_book.result.sell[0].Quantity > (BUYFROM.buyOptions.quantity * orderQuantityMul) &&
+                                    sell_order_book.result.buy[0].Quantity > BuyEthQuantity * orderQuantityMul &&
+                                    sell_order_book.result.sell[0].Quantity > BuyEthQuantity * orderQuantityMul) {
                                     console.log('=========BUYING: ' + BUYFROM.buyOptions.market + '==RATE: ' + BUYFROM.buyOptions.rate.toFixed(8) + '=========');
                                     bittrex.buylimit(BUYFROM.buyOptions, function (buy_data, err) {
                                         if (err) {
@@ -246,11 +254,11 @@ class Tradev3 {
                                     console.log('**Want to buy(BTC): ' + BUYFROM.buyOptions.quantity + '| have: ' + buy_order_book.result.buy[0].Quantity + '**');
                                     console.log('**Want to target buy(BTC): ' + BUYFROM.buyOptions.quantity + '**');
                                     console.log('**Want to sell(BTC): ' + BUYFROM.buyOptions.quantity + '| have: ' + buy_order_book.result.sell[0].Quantity + '**');
-                                    console.log('**Want to target sell(BTC): ' + BUYFROM.buyOptions.quantity * 3 + '**');
+                                    console.log('**Want to target sell(BTC): ' + BUYFROM.buyOptions.quantity * orderQuantityMul + '**');
                                     console.log('**Want to buy(ETH): ' + BuyEthQuantity + '| have: ' + sell_order_book.result.buy[0].Quantity + '**');
-                                    console.log('**Want to target buy(ETH): ' + BuyEthQuantity * 3 + '**');
+                                    console.log('**Want to target buy(ETH): ' + BuyEthQuantity * orderQuantityMul + '**');
                                     console.log('**Want to sell(ETH): ' + BuyEthQuantity + '| have: ' + sell_order_book.result.sell[0].Quantity + '**');
-                                    console.log('**Want to target sell(ETH): ' + BuyEthQuantity * 3 + '**');
+                                    console.log('**Want to target sell(ETH): ' + BuyEthQuantity * orderQuantityMul + '**');
                                 }
                             });
                         });
@@ -286,7 +294,7 @@ class Tradev3 {
                         });
                     }
                 })
-            }, 6000)
+            }, countDownToSellFROMBUY)
         }
 
         function safe_sell(target_market, SELLRATE) {
@@ -328,7 +336,7 @@ class Tradev3 {
                     })
 
                 })
-            }, 3000);
+            }, countDownToSell);
         }
     }
 }
