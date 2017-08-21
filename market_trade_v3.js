@@ -151,7 +151,7 @@ class Tradev3 {
         this.getETHBTCMarkets((market_data) => {
             bittrex.getbalance({currency: "BTC"}, (MONEY) => {
                 let money = MONEY.result;
-                console.log('-----------------------------START--------------------------------');
+                console.log('--------------------------------START----------------------------------');
                 if (money.Available > 0.0005) {
                     if (obj.startingBTC === 0) {
                         obj.startingBTC = money.Available;
@@ -161,14 +161,26 @@ class Tradev3 {
                     sellOptionMarketName = 'ETH-';
                     BUYFROM.BUYRATE = (BUYFROM.BUY).toFixed(8);
                     BUYFROM.SELLRATE = (BUYFROM.SELL * market_data.ETHtoBTCRate).toFixed(8);
+                    BUYFROM.EtoBRate = market_data.ETHtoBTCRate;
+
                     SELLFROM.BUYRATE = (SELLFROM.BUY).toFixed(8);
                     SELLFROM.SELLRATE = (SELLFROM.SELL * market_data.BTCtoETHRate).toFixed(8);
+                    SELLFROM.BtoERate = market_data.BTCtoETHRate;
 
                     console.log('Starting Money: ' + obj.startingBTC + ' BTCs');
                     console.log('Money Available: ' + money.Available + ' BTCs ($' + money.Available * market_data.currency.BTC + ') | Made: ' + (1 - (obj.startingBTC / money.Available)));
-                    console.log('Top market(BTC-ETH): ' + BUYFROM.name + '| Buy: BTC ' + BUYFROM.BUYRATE + '| Sell: BTC ' + BUYFROM.SELLRATE + '| GAIN: ' + BUYFROM.percent + '%');
-                    console.log('Top market(ETH-BTC): ' + SELLFROM.name + '| Buy: ETH ' + SELLFROM.BUYRATE + '| Sell: ETH ' + SELLFROM.SELLRATE + '| GAIN: ' + SELLFROM.percent + '%');
+                    console.log('Top market(BTC-ETH): ' + BUYFROM.name + '| Buy: BTC ' + BUYFROM.BUYRATE + '| Sell: BTC ' + BUYFROM.SELLRATE);
+                    console.log('Top market(ETH-BTC): ' + SELLFROM.name + '| Buy: ETH ' + SELLFROM.BUYRATE + '| Sell: ETH ' + SELLFROM.SELLRATE);
                     console.log('Total Trades: ' + obj.trades);
+                    let BITEREE = (0.990037438 * money.Available * BUYFROM.SELL * SELLFROM.SELL) / (BUYFROM.BUY * SELLFROM.BUY);
+                    let TruEarnPercent = (1 - (money.Available / BITEREE)) * 100;
+
+                    console.log('Calculated final: ' + BITEREE);
+                    console.log('Percent Gain: ' + TruEarnPercent + '%');
+
+
+                    let EthQuantity = (money.Available * BUYFROM.SELL) / BUYFROM.BUY;
+                    let BuyEthQuantity = EthQuantity / SELLFROM.BUY;
 
                     // socket.emit('watch data', {
                     //     startingBTC: obj.startingBTC,
@@ -185,62 +197,93 @@ class Tradev3 {
                     //     currentPercent: BUYFROM.percent,
                     //     percentGain: percentageMade
                     // })
-                    if (BUYFROM.percent > 0 && SELLFROM.percent > 0) {
+                    if (BITEREE > (money.Available * 1.001)) {
                         BUYFROM.buyOptions = {
                             market: BUYFROM.name,
                             quantity: (money.Available / BUYFROM.BUY) * Tradev3.FeesForBittrex,
                             rate: BUYFROM.BUY
                         };
-
                         bittrex.getorderbook({market: BUYFROM.name, type: 'both'}, (buy_order_book) => {
-                            if (buy_order_book.result.buy[0].Quantity > BUYFROM.buyOptions.quantity &&
-                                buy_order_book.result.sell[0].Quantity > (BUYFROM.buyOptions.quantity * 2)) {
-                                console.log('=========BUYING: ' + BUYFROM.buyOptions.market + '==QUANTITY: ' + BUYFROM.buyOptions.quantity.toFixed(6) + '==RATE: ' + BUYFROM.buyOptions.rate.toFixed(6) + '=========');
-                                bittrex.buylimit(BUYFROM.buyOptions, function (buy_data, err) {
-                                    if (err) {
-                                        console.log(err);
-                                        return 0;
-                                    }
-                                    let checkOrder = setInterval(() => {
-                                        bittrex.getorder(buy_data.result, function (buyorder, err) {
-                                            if (err) {
-                                                console.log(err);
-                                                return 0;
-                                            } else {
-                                                BUYORDERTICK++;
-                                                console.log(BUYORDERTICK + ' : BUY Order still open in market: ' + BUYFROM.name + ': ' + buyorder.result.IsOpen);
-                                                if (buyorder.result.IsOpen === false && BUYORDERTICK < 5) {
-                                                    obj.trades++;
-                                                    BUYORDERTICK = 0;
-                                                    clearInterval(checkOrder);
-                                                    safe_sell('ETH-', false, BUYFROM.SELLRATE);
-                                                    sellETHtoBTC(SELLFROM)
-                                                } else if (buyorder.result.IsOpen === true && BUYORDERTICK >= 5) {
-                                                    BUYORDERTICK = 0;
-                                                    bittrex.cancel(buy_data.result, function (cancel) {
+                            bittrex.getorderbook({market: SELLFROM.name, type: 'both'}, (sell_order_book) => {
+                                if (buy_order_book.result.buy[0].Quantity > BUYFROM.buyOptions.quantity &&
+                                    buy_order_book.result.sell[0].Quantity > (BUYFROM.buyOptions.quantity * 2) &&
+                                    sell_order_book.result.buy[0].Quantity > BuyEthQuantity &&
+                                    sell_order_book.result.sell[0].Quantity > BuyEthQuantity * 2) {
+                                    console.log('=========BUYING: ' + BUYFROM.buyOptions.market + '==RATE: ' + BUYFROM.buyOptions.rate.toFixed(8) + '=========');
+                                    bittrex.buylimit(BUYFROM.buyOptions, function (buy_data, err) {
+                                        if (err) {
+                                            console.log(err);
+                                            return 0;
+                                        }
+                                        let checkOrder = setInterval(() => {
+                                            bittrex.getorder(buy_data.result, function (buyorder, err) {
+                                                if (err) {
+                                                    console.log(err);
+                                                    return 0;
+                                                } else {
+                                                    BUYORDERTICK++;
+                                                    console.log(BUYORDERTICK + ' : BUY Order still open in market: ' + BUYFROM.name + ': ' + buyorder.result.IsOpen);
+                                                    if (buyorder.result.IsOpen === false && BUYORDERTICK < 5) {
+                                                        obj.trades++;
+                                                        BUYORDERTICK = 0;
                                                         clearInterval(checkOrder);
-                                                        console.log("BUY Order canceled: " + cancel.success);
-                                                    })
+                                                        safe_sell('ETH-', BUYFROM.EtoBRate);
+                                                        sellETHtoBTC(SELLFROM)
+                                                    } else if (buyorder.result.IsOpen === true && BUYORDERTICK >= 5) {
+                                                        BUYORDERTICK = 0;
+                                                        bittrex.cancel(buy_data.result, function (cancel) {
+                                                            clearInterval(checkOrder);
+                                                            console.log("BUY Order canceled: " + cancel.success);
+                                                        })
+                                                    }
                                                 }
-                                            }
-                                        });
-                                    }, 1000)
-                                })
-                            } else {
-                                console.log('Not enough quantity, forget it.');
-                                console.log('**Want to buy: ' + BUYFROM.buyOptions.quantity + '| have: ' + buy_order_book.result.buy[0].Quantity + '**');
-                                console.log('**Want to sell: ' + BUYFROM.buyOptions.quantity + '| have: ' + buy_order_book.result.sell[0].Quantity + '**');
-                            }
-
+                                            });
+                                        }, 1000)
+                                    })
+                                } else {
+                                    console.log('Not enough quantity, forget it.');
+                                    console.log('**Want to buy(BTC): ' + BUYFROM.buyOptions.quantity + '| have: ' + buy_order_book.result.buy[0].Quantity + '**');
+                                    console.log('**Want to sell(BTC): ' + BUYFROM.buyOptions.quantity + '| have: ' + buy_order_book.result.sell[0].Quantity + '**');
+                                    console.log('**Want to buy(ETH): ' + BuyEthQuantity + '| have: ' + sell_order_book.result.buy[0].Quantity + '**');
+                                    console.log('**Want to sell(ETH): ' + BuyEthQuantity + '| have: ' + sell_order_book.result.sell[0].Quantity + '**');
+                                }
+                            });
                         });
+                    } else {
+                        console.log('Percentage gain must be > 0.1%');
                     }
                 } else {
-                    safe_sell('BTC-', true)
+                    safe_sell('BTC-', true, 1)
                 }
             })
         });
 
-        function safe_sell(target_market, reset, SELLRATE) {
+        function sellETHtoBTC(SELLFROM) {
+            setTimeout(() => {
+                bittrex.getbalance({currency: "ETH"}, (MONEY) => {
+                    let money = MONEY.result;
+                    if (money) {
+                        SELLFROM.buyOptions = {
+                            market: SELLFROM.name,
+                            quantity: (money.Available / SELLFROM.BUY) * Tradev3.FeesForBittrex,
+                            rate: SELLFROM.BUY
+                        };
+
+                        console.log('=========BUYING: ' + SELLFROM.buyOptions.market + '==RATE: ' + SELLFROM.buyOptions.rate.toFixed(8) + '=========');
+                        bittrex.buylimit(SELLFROM.buyOptions, function (buy_data, err) {
+                            if (err) {
+                                console.log(err);
+                                return 0;
+                            } else {
+                                safe_sell('BTC-', SELLFROM.BtoERate);
+                            }
+                        });
+                    }
+                })
+            }, 7777)
+        }
+
+        function safe_sell(target_market, SELLRATE) {
             bittrex.getopenorders({}, function (data) {
                 data.result.forEach((dat) => {
                     bittrex.cancel({uuid: dat.OrderUuid}, (cancelEverything, err) => {
@@ -255,55 +298,31 @@ class Tradev3 {
             setTimeout(() => {
                 bittrex.getbalances((SELLBAL) => {
                     SELLBAL.result.forEach((D) => {
+                        let TMarket = '';
                         if (D.Currency != 'BTC' && D.Currency != 'ETH') {
-                            let TMarket = target_market + D.Currency;
-                            if (reset) {
-                                TMarket = 'BTC-ETH'
-                            }
-                            bittrex.getticker({market: TMarket}, (ticker) => {
-                                let sellOff = {
-                                    market: TMarket,
-                                    quantity: D.Available,
-                                    rate: ticker.result.Bid
-                                };
-                                bittrex.selllimit(sellOff, (sell, err) => {
-                                    if (err) {
-                                        return 0;
-                                    } else {
-                                        console.log("SOLD TO " + TMarket + ' @ ' + (ticker.result.Bid / SELLRATE) + 'BTCs');
-                                    }
-                                })
-                            })
+                            TMarket = target_market + D.Currency;
+                        } else if (D.Currency === 'ETH') {
+                            TMarket = 'BTC-ETH';
                         }
+                        bittrex.getticker({market: TMarket}, (ticker, err) => {
+                            if (err) return 0;
+                            let sellOff = {
+                                market: TMarket,
+                                quantity: D.Available,
+                                rate: ticker.result.Bid
+                            };
+                            bittrex.selllimit(sellOff, (sell, err) => {
+                                if (err) {
+                                    return 0;
+                                } else {
+                                    console.log("SOLD TO " + TMarket + ' @ ' + (ticker.result.Bid * SELLRATE) + ' BTCs');
+                                }
+                            })
+                        })
                     })
 
                 })
-            }, 1000);
-        }
-
-        function sellETHtoBTC(SELLFROM) {
-            setTimeout(() => {
-                bittrex.getbalance({currency: "ETH"}, (MONEY) => {
-                    let money = MONEY.result;
-                    if (money) {
-                        SELLFROM.buyOptions = {
-                            market: SELLFROM.name,
-                            quantity: (money.Available / SELLFROM.BUY) * Tradev3.FeesForBittrex,
-                            rate: SELLFROM.BUY
-                        };
-
-                        console.log('=========BUYING: ' + SELLFROM.buyOptions.market + '==QUANTITY: ' + SELLFROM.buyOptions.quantity.toFixed(6) + '==RATE: ' + SELLFROM.buyOptions.rate.toFixed(6) + '=========');
-                        bittrex.buylimit(SELLFROM.buyOptions, function (buy_data, err) {
-                            if (err) {
-                                console.log(err);
-                                return 0;
-                            } else {
-                                safe_sell('BTC-', false, SELLFROM.SELLRATE);
-                            }
-                        });
-                    }
-                })
-            }, 7000)
+            }, 3333);
         }
     }
 }
