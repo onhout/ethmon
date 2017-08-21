@@ -15,6 +15,7 @@ class Tradev3 {
         this.startingBTC = 0;
         this.startingETH = 0;
         this.trades = 0;
+        this.successfulTrades = 0;
         this.totalDollar = 0;
         this.percentageEarnedBTC = 0;
         this.percentageEarnedETH = 0
@@ -169,9 +170,9 @@ class Tradev3 {
 
                     console.log('Starting Money: ' + obj.startingBTC + ' BTCs');
                     console.log('Money Available: ' + money.Available + ' BTCs ($' + money.Available * market_data.currency.BTC + ') | Made: ' + (1 - (obj.startingBTC / money.Available)));
-                    console.log('Top market(BTC-ETH): ' + BUYFROM.name + '| Buy: BTC ' + BUYFROM.BUYRATE + '| Sell: BTC ' + BUYFROM.SELLRATE);
-                    console.log('Top market(ETH-BTC): ' + SELLFROM.name + '| Buy: ETH ' + SELLFROM.BUYRATE + '| Sell: ETH ' + SELLFROM.SELLRATE);
-                    console.log('Total Trades: ' + obj.trades);
+                    console.log('Top market(BTC-ETH): ' + BUYFROM.name + ' | Buy: BTC ' + BUYFROM.BUYRATE + ' | Sell: BTC ' + BUYFROM.SELLRATE);
+                    console.log('Top market(ETH-BTC): ' + SELLFROM.name + ' | Buy: ETH ' + SELLFROM.BUYRATE + ' | Sell: ETH ' + SELLFROM.SELLRATE);
+                    console.log('Total Trades: ' + obj.trades + ' | Successful Trades: ' + obj.successfulTrades);
                     let BITEREE = (0.990037438 * money.Available * BUYFROM.SELL * SELLFROM.SELL) / (BUYFROM.BUY * SELLFROM.BUY);
                     let TruEarnPercent = (1 - (money.Available / BITEREE)) * 100;
 
@@ -207,7 +208,7 @@ class Tradev3 {
                             bittrex.getorderbook({market: SELLFROM.name, type: 'both'}, (sell_order_book) => {
                                 if (buy_order_book.result.buy[0].Quantity > BUYFROM.buyOptions.quantity &&
                                     buy_order_book.result.sell[0].Quantity > (BUYFROM.buyOptions.quantity * 2) &&
-                                    sell_order_book.result.buy[0].Quantity > BuyEthQuantity &&
+                                    sell_order_book.result.buy[0].Quantity > BuyEthQuantity * 2 &&
                                     sell_order_book.result.sell[0].Quantity > BuyEthQuantity * 2) {
                                     console.log('=========BUYING: ' + BUYFROM.buyOptions.market + '==RATE: ' + BUYFROM.buyOptions.rate.toFixed(8) + '=========');
                                     bittrex.buylimit(BUYFROM.buyOptions, function (buy_data, err) {
@@ -276,11 +277,12 @@ class Tradev3 {
                                 return 0;
                             } else {
                                 safe_sell('BTC-', SELLFROM.BtoERate);
+                                obj.successfulTrades++;
                             }
                         });
                     }
                 })
-            }, 7777)
+            }, 6000)
         }
 
         function safe_sell(target_market, SELLRATE) {
@@ -322,7 +324,7 @@ class Tradev3 {
                     })
 
                 })
-            }, 3333);
+            }, 3000);
         }
     }
 }
