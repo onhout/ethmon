@@ -207,9 +207,9 @@ class Tradev3 {
                         bittrex.getorderbook({market: BUYFROM.name, type: 'both'}, (buy_order_book) => {
                             bittrex.getorderbook({market: SELLFROM.name, type: 'both'}, (sell_order_book) => {
                                 if (buy_order_book.result.buy[0].Quantity > BUYFROM.buyOptions.quantity &&
-                                    buy_order_book.result.sell[0].Quantity > (BUYFROM.buyOptions.quantity * 2) &&
-                                    sell_order_book.result.buy[0].Quantity > BuyEthQuantity * 2 &&
-                                    sell_order_book.result.sell[0].Quantity > BuyEthQuantity * 2) {
+                                    buy_order_book.result.sell[0].Quantity > (BUYFROM.buyOptions.quantity * 3) &&
+                                    sell_order_book.result.buy[0].Quantity > BuyEthQuantity * 3 &&
+                                    sell_order_book.result.sell[0].Quantity > BuyEthQuantity * 3) {
                                     console.log('=========BUYING: ' + BUYFROM.buyOptions.market + '==RATE: ' + BUYFROM.buyOptions.rate.toFixed(8) + '=========');
                                     bittrex.buylimit(BUYFROM.buyOptions, function (buy_data, err) {
                                         if (err) {
