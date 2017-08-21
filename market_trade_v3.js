@@ -244,9 +244,13 @@ class Tradev3 {
                                 } else {
                                     console.log('Not enough quantity, forget it.');
                                     console.log('**Want to buy(BTC): ' + BUYFROM.buyOptions.quantity + '| have: ' + buy_order_book.result.buy[0].Quantity + '**');
+                                    console.log('**Want to target buy(BTC): ' + BUYFROM.buyOptions.quantity + '**');
                                     console.log('**Want to sell(BTC): ' + BUYFROM.buyOptions.quantity + '| have: ' + buy_order_book.result.sell[0].Quantity + '**');
+                                    console.log('**Want to target sell(BTC): ' + BUYFROM.buyOptions.quantity * 3 + '**');
                                     console.log('**Want to buy(ETH): ' + BuyEthQuantity + '| have: ' + sell_order_book.result.buy[0].Quantity + '**');
+                                    console.log('**Want to target buy(ETH): ' + BuyEthQuantity * 3 + '**');
                                     console.log('**Want to sell(ETH): ' + BuyEthQuantity + '| have: ' + sell_order_book.result.sell[0].Quantity + '**');
+                                    console.log('**Want to target sell(ETH): ' + BuyEthQuantity * 3 + '**');
                                 }
                             });
                         });
