@@ -3,7 +3,8 @@
  */
 import socket from "socket.io";
 import Market from "./market_trade";
-import Trade from "./market_trade_v2";
+// import Trade from "./market_trade_v2";
+import Tradev3 from "./market_trade_v3";
 
 const net = require('net');
 const moment = require('moment');
@@ -30,7 +31,8 @@ class Socket {
         let intervals = {};
 
         let bittrex_market = new Market();
-        let trade = new Trade;
+        let trade = new Tradev3();
+        // let trade = new Trade;
 
         socketserver.on('connection', function (socket) {
             // socket.on('restartBtn', function (pin) {
@@ -76,7 +78,7 @@ class Socket {
                 intervals.trade = setInterval(() => {
                     // bittrex_market.startTrade(socketserver)
                     trade.startTrade(socketserver);
-                }, 30000);
+                }, 15000);
             });
 
             socket.on('stop trade', () => {
@@ -91,7 +93,7 @@ class Socket {
         });
 
         function getMarket() {
-            bittrex_market.getETHBTCMarkets(function (data) {
+            trade.getETHBTCMarkets(function (data) {
                 socketserver.emit('market data', data);
             });
         }
@@ -253,42 +255,6 @@ class Socket {
                 };
             }
         });
-
-        let SIMULATEDBALANCE = {
-            Starting_Bal: 0,
-            BTC: 0,
-            ETH: 0,
-            SECONDARY: 0
-        };
-        let Trades = 0;
-
-        function startSimulation(Market, currency, balance) {
-            if (!SIMULATEDBALANCE.BTC && !Trades && !SIMULATEDBALANCE.ETH) {
-                SIMULATEDBALANCE.BTC = balance.find(n => n.Currency === 'BTC').Available * currency.BTC;
-                SIMULATEDBALANCE.Starting_Bal = SIMULATEDBALANCE.BTC;
-            } else if (!SIMULATEDBALANCE.ETH && !Trades && !SIMULATEDBALANCE.BTC) {
-                SIMULATEDBALANCE.ETH = balance.find(n => n.Currency === 'ETH').Available * currency.ETH;
-                SIMULATEDBALANCE.Starting_Bal = SIMULATEDBALANCE.ETH;
-            }
-
-            let mostProfitableBTC = BTCETHDiff(Market, currency)[0];
-            let mostProfitableETH = ETHBTCDiff(Market, currency)[0];
-
-            if (mostProfitableBTC.percent > 0.5 && SIMULATEDBALANCE.BTC !== 0) {
-                SIMULATEDBALANCE.SECONDARY = (SIMULATEDBALANCE.BTC / (mostProfitableBTC.BUY * currency.BTC)) * FeesForBittrex;
-                SIMULATEDBALANCE.ETH = SIMULATEDBALANCE.SECONDARY * (mostProfitableBTC.SELL * currency.ETH) * FeesForBittrex;
-                SIMULATEDBALANCE.BTC = 0;
-                Trades++;
-                return;
-            }
-            if (mostProfitableETH.percent > 0.5 && SIMULATEDBALANCE.ETH !== 0) {
-                SIMULATEDBALANCE.SECONDARY = (SIMULATEDBALANCE.ETH / (mostProfitableETH.BUY * currency.ETH)) * FeesForBittrex;
-                SIMULATEDBALANCE.BTC = SIMULATEDBALANCE.SECONDARY * (mostProfitableETH.SELL * currency.BTC) * FeesForBittrex;
-                SIMULATEDBALANCE.ETH = 0;
-                Trades++;
-                return;
-            }
-        }
     }
 }
 
