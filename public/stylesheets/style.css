@@ -29,3 +29,12 @@ a {
 .table > tbody > tr > td {
     vertical-align: middle;
 }
+
+.alert-fixed {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 9999;
+    margin: 0 auto;
+}

@@ -1,0 +1,57 @@
+extends layout
+
+block content
+    .container-fluid
+        .row
+            #PoloBalance.col-md-4
+                h2.text-center Poloniex Balances
+                table.table.table-striped.table-sm.table-bordered.table-inverse
+                    thead
+                        th Market
+                        th Available
+                        th On Orders
+                        th Rate (mBTC)
+                    tbody
+            #Orders.col-md-8
+                h2.text-center Poloniex Orders
+                table.table.table-striped.table-sm.table-bordered.table-inverse
+                    thead
+                        th Order #
+                        th Name
+                        th Date
+                        th Rate
+                        th Type
+                        th Amount
+                        th Total
+                        th Cancel
+                    tbody
+        .row
+            #BTCmarketTable.col-md-12.col-xs-12
+                h2.text-center Poloniex Market (mBTC)
+                div.form-check.form-check-inline
+                    label.form-check-label
+                        input.form-check-input(type="radio" name="radioOptions" checked id="inlineRadio100" value="1")
+                        span 100%
+                div.form-check.form-check-inline
+                    label.form-check-label
+                        input.form-check-input(type="radio" name="radioOptions" id="inlineRadio50" value="0.5")
+                        span 50%
+                div.form-check.form-check-inline
+                    label.form-check-label
+                        input.form-check-input(type="radio" name="radioOptions" id="inlineRadio25" value="0.25")
+                        span 25%
+                div.table-responsive
+                    table.table.table-striped.table-sm.table-bordered.table-inverse
+                        thead
+                            th Market
+                            th Buy
+                            th Sell
+                            th 1.5%
+                            th Percent Change
+                            th Actions
+                        tbody
+
+    script(src="/javascripts/alert.js")
+    script(src="/javascripts/poloniex.js")
+        // /Miner info
+    // /Wrapper

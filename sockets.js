@@ -2,9 +2,7 @@
  * Created by pl on 8/4/17.
  */
 import socket from "socket.io";
-import Market from "./market_trade";
-// import Trade from "./market_trade_v2";
-import Tradev3 from "./market_trade_v3";
+import Poloniex from "./poloniex";
 
 const net = require('net');
 const moment = require('moment');
@@ -12,7 +10,6 @@ const config = require('./config.json');
 require("moment-duration-format");
 // const gpio = require('rpi-gpio');
 const delay = 2000;
-const bittrex = require('node.bittrex.api');
 
 
 class Socket {
@@ -23,16 +20,11 @@ class Socket {
         let miners = {};
         miners.json = [];
 
-        bittrex.options({
-            'apikey': config.bittrex_key,
-            'apisecret': config.bittrex_secret
-        });
-
         let intervals = {};
+        let poloniex = new Poloniex(socketserver);
 
-        let bittrex_market = new Market();
-        let trade = new Tradev3();
-        // let trade = new Trade;
+
+
 
         socketserver.on('connection', function (socket) {
             // socket.on('restartBtn', function (pin) {
@@ -51,52 +43,42 @@ class Socket {
             //     }
             // });
 
-            socket.on('market summary', function () {
-                getMarket();
-                clearInterval(intervals.monitor);
-                intervals.summary = setInterval(() => {
-                    getMarket()
-                }, 60000);
+            socket.on('buy and sell now', function (data) {
+                poloniex.buySell(data);
             });
 
-            socket.on('bittrex balance', function () {
-                getMarket();
-                clearInterval(intervals.summary);
-                intervals.monitor = setInterval(() => {
-                    getMarket();
-                }, 60000);
+            socket.on('cancel order', function (data) {
+                poloniex.cancelOrder(data);
+            });
+
+            socket.on('get poloniex market', function () {
+                poloniex.returnMarket();
+                intervals.market = setInterval(() => {
+                    poloniex.returnMarket();
+                }, 3000);
+            });
+
+            socket.on('get poloniex orders', function () {
+                poloniex.returnOrders();
+                intervals.orders = setInterval(() => {
+                    poloniex.returnOrders();
+                }, 10000);
+            });
+
+            socket.on('get chart data', function () {
+                // poloniex.chartData();
+                // intervals.chartdata = setInterval(() => {
+                //     poloniex.chartData();
+                // }, 30000);
             });
 
             socket.on('disconnect', function () {
-                clearInterval(intervals.summary);
-                clearInterval(intervals.monitor);
+                clearInterval(intervals.market);
+                clearInterval(intervals.orders);
             });
-
-            socket.on('start trade', () => {
-                // bittrex_market.startTrade(socketserver);
-                trade.startTrade(socketserver);
-                intervals.trade = setInterval(() => {
-                    // bittrex_market.startTrade(socketserver)
-                    trade.startTrade(socketserver);
-                }, 15000);
-            });
-
-            socket.on('stop trade', () => {
-                socket.emit('btnState', {start: false, stop: true});
-                clearInterval(intervals.trade);
-            });
-
-            socket.on('altcoin sell', () => {
-                bittrex_market.altCoinSellOff();
-            })
 
         });
 
-        function getMarket() {
-            trade.getETHBTCMarkets(function (data) {
-                socketserver.emit('market data', data);
-            });
-        }
 
         config.miners.forEach(function (item, i, arr) {
 

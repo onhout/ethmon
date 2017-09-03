@@ -7,7 +7,7 @@ import Server from "./server";
 import routes from "./routes/index";
 import miners from "./routes/miners";
 import marketSim from "./routes/market_sim";
-import trades from "./routes/trades";
+import poloniex from "./routes/poloniex";
 import moment from "moment";
 
 const config = require('./config.json');
@@ -53,7 +53,7 @@ app.use(function(req, res, next) {
 app.use('/', routes);
 app.use('/miners', miners);
 app.use('/market-simulator', marketSim);
-app.use('/trades', trades);
+app.use('/poloniex', poloniex);
 
 // Catch 404 and forward to error handler
 app.use(function(req, res, next) {
