@@ -123,7 +123,7 @@ class PoloniexMon {
                 for (let key in marketjson) {
                     if (marketjson.hasOwnProperty(key)) {
                         let magic = marketjson[key];
-                        if (key.includes('BTC_') && marketjson[key]['baseVolume'] > 500) {
+                        if (key.includes('BTC_') && marketjson[key]['baseVolume'] > 100) {
                             magic['marketName'] = key;
                             modifiedJson.push(magic);
                         }
