@@ -56,12 +56,9 @@ class PoloniexMon {
         // });
     }
 
-    buySell(data, activate) {
+    buySell(data) {
         let obj = this;
         let availableValue = '';
-        if (activate) {
-            obj.pushMark = true;
-        }
         obj.balanceSheet.forEach((ele) => {
             if (ele.marketName === 'BTC') {
                 availableValue = ele.btcValue;
@@ -100,8 +97,11 @@ class PoloniexMon {
                                     })
                                         .then(msg => {
                                             let sellOrder = JSON.parse(msg.body);
-                                            obj.socket.emit('alert', {text: 'Sell order listed', priority: 'success'});
-                                            console.log(sellOrder);
+                                            obj.socket.emit('alert', {
+                                                text: 'Created sell order #' + sellOrder.orderNumber,
+                                                priority: 'success'
+                                            });
+                                            obj.pushMark = true;
                                         })
                                         .catch(err => console.log(err))
                                 });
@@ -176,8 +176,8 @@ class PoloniexMon {
                     }
                 }
                 if (!modifiedJson[0] && obj.pushMark) {
-                    obj.pushNotification('There are no more open orders');
                     obj.pushMark = false;
+                    obj.pushNotification('There are no more open orders');
                 }
                 obj.openOrders = modifiedJson;
                 socket.emit("poloniex open orders", modifiedJson);

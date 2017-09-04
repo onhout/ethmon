@@ -47,7 +47,7 @@ class Socket {
             // });
 
             socket.on('buy and sell now', function (data) {
-                poloniex.buySell(data, true);
+                poloniex.buySell(data);
             });
 
             socket.on('cancel order', function (data) {
