@@ -20,6 +20,8 @@
     "poloniex-api": "^1.2.4",
     "popper.js": "^1.11.1",
     "pug": "^2.0.0-rc.3",
+    "pushover-notifications": "^0.2.4",
+    "request": "^2.81.0",
     "rpi-gpio": "^0.8.1",
     "serve-favicon": "~2.3.0",
     "socket.io": "^2.0.3",

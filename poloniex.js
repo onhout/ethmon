@@ -1,10 +1,16 @@
 import API from 'poloniex-api';
 import config from "./config.json";
 import moment from 'moment';
+import Pushover from 'pushover-notifications';
 
 const TradingApi = API.tradingApi.create(config.poloniex_key, config.poloniex_secret);
 const PublicApi = API.publicApi.create();
 const PushApi = API.pushApi;
+
+const p = new Pushover({
+    user: 'us7CARhU1Rw6WXpLEYy2aLjAiaTkCH',
+    token: 'aufx54z8fxrkchnkqgj2whv1sed7if',
+});
 
 
 // console.log(TradingApi.pushApi);
@@ -22,6 +28,7 @@ class PoloniexMon {
         this.currency_pairs = [];
         this.balanceSheet = {};
         this.openOrders = {};
+        this.pushMark = false;
     }
 
     chartData() {
@@ -49,9 +56,12 @@ class PoloniexMon {
         // });
     }
 
-    buySell(data) {
+    buySell(data, activate) {
         let obj = this;
         let availableValue = '';
+        if (activate) {
+            obj.pushMark = true;
+        }
         obj.balanceSheet.forEach((ele) => {
             if (ele.marketName === 'BTC') {
                 availableValue = ele.btcValue;
@@ -125,7 +135,7 @@ class PoloniexMon {
             .catch(err => console.log(err));
     }
 
-    returnOrders() {
+    returnBalances() {
         let obj = this;
         let socket = this.socket;
         TradingApi.returnCompleteBalances()
@@ -147,10 +157,14 @@ class PoloniexMon {
                 socket.emit("poloniex balance", obj.balanceSheet);
             })
             .catch(err => console.log(err));
+    }
+
+    returnOrders() {
+        let obj = this;
+        let socket = this.socket;
 
         TradingApi.returnOpenOrders({currencyPair: 'all'})
             .then((msg) => {
-
                 let openOrders = JSON.parse(msg.body);
                 let modifiedJson = [];
                 for (let key in openOrders) {
@@ -160,6 +174,10 @@ class PoloniexMon {
                             modifiedJson.push({orders: magic, marketName: key});
                         }
                     }
+                }
+                if (!modifiedJson[0] && obj.pushMark) {
+                    obj.pushNotification('There are no more open orders');
+                    obj.pushMark = false;
                 }
                 obj.openOrders = modifiedJson;
                 socket.emit("poloniex open orders", modifiedJson);
@@ -179,6 +197,23 @@ class PoloniexMon {
                 }
             })
             .catch(err => console.log(err));
+    }
+
+    pushNotification(text) {
+        let obj = this;
+        let message = {
+            // These values correspond to the parameters detailed on https://pushover.net/api
+            // 'message' is required. All other values are optional.
+            message: text,	// required
+            title: "Trade Bot notification",
+            sound: 'cash register'
+        };
+
+        p.send(message, function (err, result) {
+            if (err) {
+                throw err;
+            }
+        });
     }
 }
 

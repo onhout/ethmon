@@ -24,6 +24,9 @@ class Socket {
         let poloniex = new Poloniex(socketserver);
 
 
+        intervals.returnorders = setInterval(() => {
+            poloniex.returnOrders();
+        }, 10000);
 
 
         socketserver.on('connection', function (socket) {
@@ -44,7 +47,7 @@ class Socket {
             // });
 
             socket.on('buy and sell now', function (data) {
-                poloniex.buySell(data);
+                poloniex.buySell(data, true);
             });
 
             socket.on('cancel order', function (data) {
@@ -59,9 +62,9 @@ class Socket {
             });
 
             socket.on('get poloniex orders', function () {
-                poloniex.returnOrders();
+                poloniex.returnBalances();
                 intervals.orders = setInterval(() => {
-                    poloniex.returnOrders();
+                    poloniex.returnBalances();
                 }, 10000);
             });
 
