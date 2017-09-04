@@ -33,7 +33,7 @@ $(document).ready(() => {
                     marketName: ele.marketName,
                     percentage: percentage,
                     buy_price: ele.last,
-                    sell_price: ele.last * 1000 * 1.015
+                    sell_price: ele.last * 1.015
                 });
             })
         });
