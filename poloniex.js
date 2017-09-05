@@ -28,6 +28,7 @@ class PoloniexMon {
         this.currency_pairs = [];
         this.balanceSheet = {};
         this.openOrders = {};
+        this.checkOrders = {};
         this.pushMark = false;
     }
 
@@ -77,7 +78,7 @@ class PoloniexMon {
             })
             .catch(err => console.log(err));
 
-        let checkOrders = setInterval(() => {
+        obj.checkOrders = setInterval(() => {
             TradingApi.returnOpenOrders({currencyPair: data.marketName})
                 .then((msg) => {
                     let openOrders = JSON.parse(msg.body);
@@ -85,7 +86,7 @@ class PoloniexMon {
                         console.log('Buying...');
                     } else {
                         setTimeout(() => {
-                            clearInterval(checkOrders);
+                            clearInterval(obj.checkOrders);
                             TradingApi.returnBalances()
                                 .then((msg) => {
                                     let currency = data.marketName.replace("BTC_", "");
@@ -187,6 +188,7 @@ class PoloniexMon {
 
     cancelOrder(orderNumber) {
         let obj = this;
+        clearInterval(obj.checkOrders);
         TradingApi.cancelOrder({orderNumber})
             .then((msg) => {
                 let mes = JSON.parse(msg.body);
