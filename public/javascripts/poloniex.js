@@ -22,7 +22,7 @@ $(document).ready(() => {
             tdName = '<td>' + ele.marketName + '</td>';
             tdBuy = '<td class="text-success">' + numeral(ele.highestBid * 1000).format('0,0.00000') + '</td>';
             tdSell = '<td class="text-danger">' + numeral(ele.lowestAsk * 1000).format('0,0.00000') + '</td>';
-            tdOnePercent = '<td class="text-info">' + numeral(ele.last * 1000 * 1.015).format('0,0.00000') + '</td>';
+            tdOnePercent = '<td class="text-info">' + numeral(ele.highestBid * 1000 * 1.015).format('0,0.00000') + '</td>';
             tdPercentChange = '<td class="' + positive + '">' + numeral(ele.percentChange).format('0.00%') + '</td>';
             tdActions = '<td><button class="btn btn-success btn-sm" id="buy_' + ele.marketName + '">' +
                 'BUY & SELL</button>' + '</td>';
@@ -32,8 +32,8 @@ $(document).ready(() => {
                 socket.emit('buy and sell now', {
                     marketName: ele.marketName,
                     percentage: percentage,
-                    buy_price: ele.last,
-                    sell_price: ele.last * 1.015
+                    buy_price: ele.highestBid,
+                    sell_price: ele.highestBid * 1.015
                 });
             })
         });
