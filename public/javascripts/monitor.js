@@ -16,7 +16,7 @@ let animation_index = 0;
 $(document).ready(() => {
     const socket = io();
 
-    socket.emit('bittrex balance');
+    socket.emit('get miner stats');
     socket.on('market data', (data) => {
         const BittrexBalance = $('#bittrex_balance tbody');
         BittrexBalance.html('');

@@ -6,7 +6,6 @@ $(document).ready(() => {
     socket.emit('get poloniex market');
     socket.emit('get poloniex orders');
     socket.emit('get chart data');
-
     socket.on('poloniex market', (data) => {
         const BTCmarketTable = $('#BTCmarketTable tbody');
         BTCmarketTable.html('');
@@ -19,13 +18,13 @@ $(document).ready(() => {
         let tdActions = '';
         data.forEach((ele) => {
             let positive = ele.percentChange > 0 ? 'text-success' : 'text-danger';
-            tdName = '<td>' + ele.marketName + '</td>';
+            tdName = '<td><a href="https://poloniex.com/exchange#' + ele.marketName.toLowerCase() + '" target="_blank">' + ele.marketName + '</a></td>';
             tdBuy = '<td class="text-success">' + numeral(ele.highestBid * 1000).format('0,0.00000') + '</td>';
             tdSell = '<td class="text-danger">' + numeral(ele.lowestAsk * 1000).format('0,0.00000') + '</td>';
             tdOnePercent = '<td class="text-info">' + numeral(ele.highestBid * 1000 * 1.015).format('0,0.00000') + '</td>';
             tdPercentChange = '<td class="' + positive + '">' + numeral(ele.percentChange).format('0.00%') + '</td>';
             tdActions = '<td><button class="btn btn-success btn-sm" id="buy_' + ele.marketName + '">' +
-                'BUY & SELL</button>' + '</td>';
+                'BUY @ ' + ele.highestBid + '</button>' + '</td>';
             BTCmarketTable.append('<tr>' + tdName + tdBuy + tdSell + tdOnePercent + tdVol + tdPercentChange + tdActions + '</tr>');
             $('#buy_' + ele.marketName).click(function () {
                 let percentage = $('input[name="radioOptions"]:checked').val();
@@ -45,14 +44,19 @@ $(document).ready(() => {
         let tdName = '';
         let tdAvailable = '';
         let tdOnorders = '';
-        let tdRate = '';
+        let btcValue = '';
+        let totalBtc = 0;
         data.forEach((ele) => {
             tdName = '<td>' + ele.marketName + '</td>';
-            tdAvailable = '<td class="text-success">' + numeral(ele.available).format('0,0.00000000') + '</td>';
-            tdOnorders = '<td class="text-warning">' + numeral(ele.onOrders).format('0,0.00000000') + '</td>';
-            tdRate = '<td class="text-success">' + numeral(ele.btcValue).format('0,0.00000000') + '</td>';
-            balanceTable.append('<tr>' + tdName + tdAvailable + tdOnorders + tdRate + '</tr>');
+            tdAvailable = '<td class="text-success">' + ele.available + '</td>';
+            tdOnorders = '<td class="text-primary">' + ele.onOrders + '</td>';
+            btcValue = '<td class="text-success btc-value">' + ele.btcValue + '</td>';
+            balanceTable.append('<tr>' + tdName + tdAvailable + tdOnorders + btcValue + '</tr>');
         });
+        $('.btc-value').each(function () {
+            totalBtc += parseFloat($(this).text());
+        });
+        balanceTable.append('<tr><td>Total BTC</td><td colspan="3" class="text-center" id="totalBtc">' + totalBtc.toFixed(8) + '</td></tr>');
     });
 
     socket.on('poloniex open orders', (data) => {

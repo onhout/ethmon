@@ -1,7 +1,7 @@
-import API from 'poloniex-api';
+import API from "poloniex-api";
 import config from "./config.json";
-import moment from 'moment';
-import Pushover from 'pushover-notifications';
+import moment from "moment";
+import Pushover from "pushover-notifications";
 
 const TradingApi = API.tradingApi.create(config.poloniex_key, config.poloniex_secret);
 const PublicApi = API.publicApi.create();
@@ -69,47 +69,62 @@ class PoloniexMon {
         TradingApi.buy({
             currencyPair: data.marketName,
             amount: purchaseAmount * data.percentage,
-            rate: data.buy_price
+            rate: data.buy_price * 0.5
         })
             .then(msg => {
                 let order = JSON.parse(msg.body);
-                obj.socket.emit('alert', {text: 'Creating order number #' + order.orderNumber, priority: 'success'});
+                return new Promise((resolve, reject) => {
+                    reject(order.error);
+                    resolve(order.orderNumber);
+                });
             })
-            .catch(err => console.log(err));
-
-        let checkOrders = setInterval(() => {
-            TradingApi.returnOpenOrders({currencyPair: data.marketName})
-                .then((msg) => {
-                    let openOrders = JSON.parse(msg.body);
-                    if (openOrders[0]) {
-                        console.log('Buying...');
-                    } else {
-                        setTimeout(() => {
-                            clearInterval(checkOrders);
-                            TradingApi.returnBalances()
-                                .then((msg) => {
-                                    let currency = data.marketName.replace("BTC_", "");
-                                    let List = JSON.parse(msg.body);
-                                    TradingApi.sell({
-                                        currencyPair: data.marketName,
-                                        amount: List[currency],
-                                        rate: data.sell_price,
-                                    })
-                                        .then(msg => {
-                                            let sellOrder = JSON.parse(msg.body);
-                                            obj.socket.emit('alert', {
-                                                text: 'Created sell order #' + sellOrder.orderNumber,
-                                                priority: 'success'
+            .then(orderNumber => {
+                obj.socket.emit('alert', {text: 'Creating buy order #' + orderNumber, priority: 'success'});
+                let checkOrders = setInterval(() => {
+                    TradingApi.returnOpenOrders({currencyPair: data.marketName})
+                        .then((msg) => {
+                            let openOrders = JSON.parse(msg.body);
+                            if (openOrders[0] && openOrders[0].type === "buy") {
+                                console.log('Buying...');
+                            } else {
+                                setTimeout(() => {
+                                    clearInterval(checkOrders);
+                                    return new Promise((resolve, reject) => {
+                                        TradingApi.returnBalances()
+                                            .then((msg) => {
+                                                let currency = data.marketName.replace("BTC_", "");
+                                                let List = JSON.parse(msg.body);
+                                                resolve(List[currency]);
                                             });
-                                            obj.pushMark = true;
-                                        })
-                                        .catch(err => console.log(err))
-                                });
-                        }, 2000)
-                    }
-                })
-                .catch(err => console.log(err));
-        }, 5000);
+                                    })
+                                }, 2000)
+                            }
+                        })
+                        .catch(err => console.log(err));
+                }, 5000);
+
+            }, reason => {
+                obj.socket.emit('alert', {text: reason, priority: 'danger'});
+            })
+            .then(currency => {
+                if (currency) {
+                    TradingApi.sell({
+                        currencyPair: data.marketName,
+                        amount: currency,
+                        rate: data.sell_price,
+                    })
+                        .then((msg) => {
+                            let sellOrder = JSON.parse(msg.body);
+                            obj.socket.emit('alert', {
+                                text: 'Created sell order #' + sellOrder.orderNumber,
+                                priority: 'success'
+                            });
+                            obj.pushMark = true;
+                        })
+                        .catch(err => console.log(err))
+                }
+            })
+            .catch(error => console.log(error));
     }
 
     returnMarket() {
@@ -129,8 +144,10 @@ class PoloniexMon {
                         }
                     }
                 }
-                obj.currency_pairs = modifiedJson;
-                socket.emit("poloniex market", modifiedJson);
+                obj.currency_pairs = modifiedJson.sort(function (a, b) {
+                    return a.marketName.localeCompare(b.marketName);
+                });
+                socket.emit("poloniex market", obj.currency_pairs);
             })
             .catch(err => console.log(err));
     }
@@ -172,15 +189,20 @@ class PoloniexMon {
                         let magic = openOrders[key];
                         if (magic[0]) {
                             modifiedJson.push({orders: magic, marketName: key});
+                            if (magic[0].type === 'sell') {
+                                obj.pushMark = true;
+                            }
                         }
                     }
                 }
+
+                obj.openOrders = modifiedJson;
                 if (!modifiedJson[0] && obj.pushMark) {
                     obj.pushMark = false;
                     obj.pushNotification('There are no more open orders');
+                } else if (modifiedJson[0] && modifiedJson[0].marketName !== 'error') {
+                    socket.emit("poloniex open orders", modifiedJson);
                 }
-                obj.openOrders = modifiedJson;
-                socket.emit("poloniex open orders", modifiedJson);
             })
             .catch(err => console.log(err));
     }
@@ -202,17 +224,12 @@ class PoloniexMon {
     pushNotification(text) {
         let obj = this;
         let message = {
-            // These values correspond to the parameters detailed on https://pushover.net/api
-            // 'message' is required. All other values are optional.
             message: text,	// required
             title: "Trade Bot notification",
             sound: 'cash register'
         };
-
-        p.send(message, function (err, result) {
-            if (err) {
-                throw err;
-            }
+        p.send(message, (err, result) => {
+            throw err
         });
     }
 }

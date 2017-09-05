@@ -4,8 +4,8 @@ block content
     .container-fluid
         .row
             #PoloBalance.col-md-4
-                h2.text-center Poloniex Balances
-                table.table.table-striped.table-sm.table-bordered.table-inverse
+                h3.text-center Poloniex Balances
+                table.table.table-striped.table-sm.table-bordered.table-hover.table-inverse
                     thead
                         th Market
                         th Available
@@ -13,9 +13,9 @@ block content
                         th Est (mBTC)
                     tbody
             #Orders.col-md-8
-                h2.text-center Poloniex Orders
+                h3.text-center Poloniex Orders
                 div.table-responsive
-                    table.table.table-striped.table-sm.table-bordered.table-inverse
+                    table.table.table-striped.table-sm.table-bordered.table-hover.table-inverse
                         thead
                             th Order #
                             th Name
@@ -28,7 +28,7 @@ block content
                         tbody
         .row
             #BTCmarketTable.col-md-12.col-xs-12
-                h2.text-center Poloniex Market (mBTC)
+                h3.text-center Poloniex Market (mBTC)
                 div.form-check.form-check-inline
                     label.form-check-label
                         input.form-check-input(type="radio" name="radioOptions" checked id="inlineRadio100" value="1")
@@ -42,7 +42,7 @@ block content
                         input.form-check-input(type="radio" name="radioOptions" id="inlineRadio25" value="0.25")
                         span 25%
                 div.table-responsive
-                    table.table.table-striped.table-sm.table-bordered.table-inverse
+                    table.table.table-striped.table-sm.table-bordered.table-hover.table-inverse
                         thead
                             th Market
                             th Buy
