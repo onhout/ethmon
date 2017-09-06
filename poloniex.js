@@ -36,15 +36,21 @@ class PoloniexMon {
         let obj = this;
         for (let x = 0, ln = obj.currency_pairs.length; x < ln; x++) {
             setTimeout(function (y) {
-                // PublicApi.returnChartData({
-                //     currencyPair: obj.currency_pairs[y].marketName,
-                //     start: (now / 1000) - 1800,
-                //     end: 9999999999,
-                //     period: 300
-                // }).then((data) => {
-                //     console.log(data.body);
-                // });
-            }, x * 500, x); // we're passing x
+                PublicApi.returnChartData({
+                    currencyPair: obj.currency_pairs[y].marketName,
+                    start: (now / 1000) - 2100,
+                    end: 9999999999,
+                    period: 300
+                }).then((data) => {
+                    let chartData = JSON.parse(data.body);
+                    obj.socket.emit('chart data', {
+                        data: chartData,
+                        name: obj.currency_pairs[y].marketName,
+                        current_count: x,
+                        market_length: obj.currency_pairs.length
+                    });
+                });
+            }, x * 1337, x); // we're passing x
         }
         // PublicApi.returnChartData({
         //     currencyPair: "BTC_XMR",
@@ -228,8 +234,8 @@ class PoloniexMon {
             title: "Trade Bot notification",
             sound: 'cash register'
         };
-        p.send(message, (err, result) => {
-            throw err
+        p.send(message, err => {
+            console.log(err)
         });
     }
 }

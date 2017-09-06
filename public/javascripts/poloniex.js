@@ -94,5 +94,34 @@ $(document).ready(() => {
         setTimeout(() => {
             $('.alert').alert('close')
         }, 5000)
+    });
+
+    socket.on('chart data', (data) => {
+        const Graphs = $('#Graphs tbody');
+        let msg = '';
+        let tdGraph = '';
+
+        function createTD() {
+            data.data.forEach((current, index, array) => {
+                let percentGrew = 0;
+                if (index !== 0) {
+                    percentGrew = ((array[index].weightedAverage - array[0].weightedAverage) / array[0].weightedAverage) * 100;
+                    msg += percentGrew.toFixed(2) + '% ';
+                }
+                tdGraph = '<tr><td>' + data.name + '</td><td>' + msg + '</td></tr>';
+            });
+            Graphs.append(tdGraph);
+        }
+
+        if (data.current_count == 0) {
+            Graphs.html('');
+            createTD();
+        } else {
+            createTD();
+        }
+    });
+
+    socket.on('create chart table', () => {
+
     })
-})
+});

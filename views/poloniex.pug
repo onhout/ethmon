@@ -26,21 +26,21 @@ block content
                             th Total
                             th Cancel
                         tbody
+        h3.text-center Poloniex Market (mBTC)
+        div.form-check.form-check-inline
+            label.form-check-label
+                input.form-check-input(type="radio" name="radioOptions" checked id="inlineRadio100" value="1")
+                span 100%
+        div.form-check.form-check-inline
+            label.form-check-label
+                input.form-check-input(type="radio" name="radioOptions" id="inlineRadio50" value="0.5")
+                span 50%
+        div.form-check.form-check-inline
+            label.form-check-label
+                input.form-check-input(type="radio" name="radioOptions" id="inlineRadio25" value="0.25")
+                span 25%
         .row
-            #BTCmarketTable.col-md-12.col-xs-12
-                h3.text-center Poloniex Market (mBTC)
-                div.form-check.form-check-inline
-                    label.form-check-label
-                        input.form-check-input(type="radio" name="radioOptions" checked id="inlineRadio100" value="1")
-                        span 100%
-                div.form-check.form-check-inline
-                    label.form-check-label
-                        input.form-check-input(type="radio" name="radioOptions" id="inlineRadio50" value="0.5")
-                        span 50%
-                div.form-check.form-check-inline
-                    label.form-check-label
-                        input.form-check-input(type="radio" name="radioOptions" id="inlineRadio25" value="0.25")
-                        span 25%
+            #BTCmarketTable.col-8
                 div.table-responsive
                     table.table.table-striped.table-sm.table-bordered.table-hover.table-inverse
                         thead
@@ -50,6 +50,12 @@ block content
                             th 1.5%
                             th Percent Change
                             th Actions
+                        tbody
+            #Graphs.col-4
+                div.table-responsive
+                    table.table.table-striped.table-bordered.table-hover.table-inverse
+                        thead
+                            th(style="padding:0.3rem") Graph
                         tbody
 
     script(src="/javascripts/alert.js")

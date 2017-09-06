@@ -69,15 +69,18 @@ class Socket {
             });
 
             socket.on('get chart data', function () {
-                // poloniex.chartData();
-                // intervals.chartdata = setInterval(() => {
-                //     poloniex.chartData();
-                // }, 30000);
+                setTimeout(() => {
+                    poloniex.chartData();
+                }, 5555);
+                intervals.chartdata = setInterval(() => {
+                    poloniex.chartData();
+                }, 70000);
             });
 
             socket.on('disconnect', function () {
                 clearInterval(intervals.market);
                 clearInterval(intervals.orders);
+                clearInterval(intervals.chartdata);
             });
 
             socket.on('get miner stats', function () {
