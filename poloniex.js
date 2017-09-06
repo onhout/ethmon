@@ -29,37 +29,45 @@ class PoloniexMon {
         this.balanceSheet = {};
         this.openOrders = {};
         this.pushMark = false;
+        this.chartData = [];
+        this.chartInterval = false;
     }
 
-    chartData() {
+
+    collect_chartData() {
         let now = moment.now();
         let obj = this;
-        for (let x = 0, ln = obj.currency_pairs.length; x < ln; x++) {
-            setTimeout(function (y) {
-                PublicApi.returnChartData({
-                    currencyPair: obj.currency_pairs[y].marketName,
-                    start: (now / 1000) - 2100,
-                    end: 9999999999,
-                    period: 300
-                }).then((data) => {
-                    let chartData = JSON.parse(data.body);
-                    obj.socket.emit('chart data', {
-                        data: chartData,
-                        name: obj.currency_pairs[y].marketName,
-                        current_count: x,
-                        market_length: obj.currency_pairs.length
-                    });
-                });
-            }, x * 1337, x); // we're passing x
+        if (!obj.chartInterval) {
+            get_chart();
+            obj.chartInterval = setInterval(() => {
+                get_chart()
+            }, obj.currency_pairs.length * 2 * 1337);
         }
-        // PublicApi.returnChartData({
-        //     currencyPair: "BTC_XMR",
-        //     start: (now / 1000) - 1800,
-        //     end: 9999999999,
-        //     period: 300
-        // }).then((data) => {
-        //     console.log(data.body);
-        // });
+        function get_chart() {
+            for (let x = 0, ln = obj.currency_pairs.length; x < ln; x++) {
+                setTimeout(function (y) {
+                    PublicApi.returnChartData({
+                        currencyPair: obj.currency_pairs[y].marketName,
+                        start: (now / 1000) - 2100,
+                        end: 9999999999,
+                        period: 300
+                    }).then((data) => {
+                        let chartData = JSON.parse(data.body);
+                        if (x === obj.currency_pairs.length) {
+                            obj.chartData = [];
+                        }
+                        obj.chartData.push({
+                            data: chartData,
+                            name: obj.currency_pairs[y].marketName
+                        });
+                        if (x === obj.currency_pairs.length - 1) {
+                            obj.socket.emit('chart data', obj.chartData);
+                            obj.chartData = [];
+                        }
+                    });
+                }, x * 1337, x); // we're passing x
+            }
+        }
     }
 
     buySell(data) {
@@ -80,8 +88,11 @@ class PoloniexMon {
             .then(msg => {
                 let order = JSON.parse(msg.body);
                 return new Promise((resolve, reject) => {
-                    reject(order.error);
-                    resolve(order.orderNumber);
+                    if (order.error) {
+                        reject(order.error);
+                    } else {
+                        resolve(order.orderNumber);
+                    }
                 });
             })
             .then(orderNumber => {
@@ -112,11 +123,11 @@ class PoloniexMon {
             }, reason => {
                 obj.socket.emit('alert', {text: reason, priority: 'danger'});
             })
-            .then(currency => {
-                if (currency) {
+            .then(amount => {
+                if (amount > 0) {
                     TradingApi.sell({
                         currencyPair: data.marketName,
-                        amount: currency,
+                        amount: amount,
                         rate: data.sell_price,
                     })
                         .then((msg) => {

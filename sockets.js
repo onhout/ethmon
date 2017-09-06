@@ -28,6 +28,9 @@ class Socket {
             poloniex.returnOrders();
         }, 9000);
 
+        setTimeout(() => {
+            poloniex.collect_chartData();
+        }, 6666);
 
         socketserver.on('connection', function (socket) {
             // socket.on('restartBtn', function (pin) {
@@ -69,12 +72,7 @@ class Socket {
             });
 
             socket.on('get chart data', function () {
-                setTimeout(() => {
-                    poloniex.chartData();
-                }, 5555);
-                intervals.chartdata = setInterval(() => {
-                    poloniex.chartData();
-                }, 100000);
+
             });
 
             socket.on('disconnect', function () {
