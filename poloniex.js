@@ -104,38 +104,33 @@ class PoloniexMon {
                             } else {
                                 setTimeout(() => {
                                     clearInterval(checkOrders);
-                                    return new Promise((resolve, reject) => {
-                                        TradingApi.returnBalances()
-                                            .then((msg) => {
-                                                let currency = data.marketName.replace("BTC_", "");
-                                                let List = JSON.parse(msg.body);
-                                                resolve(List[currency]);
-                                            });
-                                    })
-                                }, 2000)
+                                    TradingApi.returnBalances()
+                                        .then((msg) => {
+                                            let currency = data.marketName.replace("BTC_", "");
+                                            let List = JSON.parse(msg.body);
+                                            if (List[currency] > 0) {
+                                                TradingApi.sell({
+                                                    currencyPair: data.marketName,
+                                                    amount: List[currency],
+                                                    rate: data.sell_price,
+                                                })
+                                                    .then((msg) => {
+                                                        let sellOrder = JSON.parse(msg.body);
+                                                        obj.socket.emit('alert', {
+                                                            text: 'Created sell order #' + sellOrder.orderNumber,
+                                                            priority: 'success'
+                                                        });
+                                                        obj.pushMark = true;
+                                                    })
+                                                    .catch(err => console.log('SELL error: ' + err.code))
+                                            }
+                                        });
+                                }, 3000)
                             }
                         })
                         .catch(err => console.log('returnOpenOrders error: ' + err.code));
                 }, 5000);
 
-            })
-            .then(amount => {
-                if (amount > 0) {
-                    TradingApi.sell({
-                        currencyPair: data.marketName,
-                        amount: amount,
-                        rate: data.sell_price,
-                    })
-                        .then((msg) => {
-                            let sellOrder = JSON.parse(msg.body);
-                            obj.socket.emit('alert', {
-                                text: 'Created sell order #' + sellOrder.orderNumber,
-                                priority: 'success'
-                            });
-                            obj.pushMark = true;
-                        })
-                        .catch(err => console.log('SELL error: ' + err.code))
-                }
             })
             .catch(error => console.log('BUY error: ' + err.code));
     }
