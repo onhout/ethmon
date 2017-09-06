@@ -51,20 +51,22 @@ class PoloniexMon {
                         start: (now / 1000) - 2100,
                         end: 9999999999,
                         period: 300
-                    }).then((data) => {
-                        let chartData = JSON.parse(data.body);
-                        if (x === obj.currency_pairs.length) {
-                            obj.chartData = [];
-                        }
-                        obj.chartData.push({
-                            data: chartData,
-                            name: obj.currency_pairs[y].marketName
-                        });
-                        if (x === obj.currency_pairs.length - 1) {
-                            obj.socket.emit('chart data', obj.chartData);
-                            obj.chartData = [];
-                        }
-                    });
+                    })
+                        .then((data) => {
+                            let chartData = JSON.parse(data.body);
+                            if (x === obj.currency_pairs.length) {
+                                obj.chartData = [];
+                            }
+                            obj.chartData.push({
+                                data: chartData,
+                                name: obj.currency_pairs[y].marketName
+                            });
+                            if (x === obj.currency_pairs.length - 1) {
+                                obj.socket.emit('chart data', obj.chartData);
+                                obj.chartData = [];
+                            }
+                        })
+                        .catch(err => console.log('returnChartData error: ' + err.code));
                 }, x * 1337, x); // we're passing x
             }
         }
@@ -88,11 +90,7 @@ class PoloniexMon {
             .then(msg => {
                 let order = JSON.parse(msg.body);
                 return new Promise((resolve, reject) => {
-                    if (order.error) {
-                        reject(order.error);
-                    } else {
-                        resolve(order.orderNumber);
-                    }
+                    resolve(order.orderNumber);
                 });
             })
             .then(orderNumber => {
@@ -117,11 +115,9 @@ class PoloniexMon {
                                 }, 2000)
                             }
                         })
-                        .catch(err => console.log(err));
+                        .catch(err => console.log('returnOpenOrders error: ' + err.code));
                 }, 5000);
 
-            }, reason => {
-                obj.socket.emit('alert', {text: reason, priority: 'danger'});
             })
             .then(amount => {
                 if (amount > 0) {
@@ -138,10 +134,10 @@ class PoloniexMon {
                             });
                             obj.pushMark = true;
                         })
-                        .catch(err => console.log(err))
+                        .catch(err => console.log('SELL error: ' + err.code))
                 }
             })
-            .catch(error => console.log(error));
+            .catch(error => console.log('BUY error: ' + err.code));
     }
 
     returnMarket() {
@@ -166,7 +162,7 @@ class PoloniexMon {
                 });
                 socket.emit("poloniex market", obj.currency_pairs);
             })
-            .catch(err => console.log(err));
+            .catch(err => console.log('returnMarket error: ' + err.code));
     }
 
     returnBalances() {
@@ -190,7 +186,7 @@ class PoloniexMon {
                 }
                 socket.emit("poloniex balance", obj.balanceSheet);
             })
-            .catch(err => console.log(err));
+            .catch(err => console.log('returnBalances error: ' + err.code));
     }
 
     returnOrders() {
@@ -221,7 +217,7 @@ class PoloniexMon {
                     socket.emit("poloniex open orders", modifiedJson);
                 }
             })
-            .catch(err => console.log(err));
+            .catch(err => console.log('returnOrders error: ' + err.code));
     }
 
     cancelOrder(orderNumber) {
@@ -235,7 +231,7 @@ class PoloniexMon {
                     obj.socket.emit('alert', {text: mes.message, priority: 'danger'})
                 }
             })
-            .catch(err => console.log(err));
+            .catch(err => console.log('cancelOrder error: ' + err.code));
     }
 
     pushNotification(text) {

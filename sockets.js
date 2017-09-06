@@ -22,7 +22,7 @@ class Socket {
 
         let intervals = {};
         let poloniex = new Poloniex(socketserver);
-
+        poloniex.returnMarket();
 
         setInterval(() => {
             poloniex.returnOrders();
