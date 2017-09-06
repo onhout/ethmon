@@ -4,7 +4,7 @@ block content
     .container-fluid
         .row
             #PoloBalance.col-md-4
-                h3.text-center Poloniex Balances
+                h4.text-center Balances
                 table.table.table-striped.table-sm.table-bordered.table-hover.table-inverse
                     thead
                         th Market
@@ -13,7 +13,7 @@ block content
                         th Est (mBTC)
                     tbody
             #Orders.col-md-8
-                h3.text-center Poloniex Orders
+                h4.text-center Orders
                 div.table-responsive
                     table.table.table-striped.table-sm.table-bordered.table-hover.table-inverse
                         thead
@@ -26,19 +26,21 @@ block content
                             th Total
                             th Cancel
                         tbody
-        h3.text-center Poloniex Market (mBTC)
-        div.form-check.form-check-inline
-            label.form-check-label
-                input.form-check-input(type="radio" name="radioOptions" checked id="inlineRadio25" value="0.25")
-                span 25%
-        div.form-check.form-check-inline
-            label.form-check-label
-                input.form-check-input(type="radio" name="radioOptions" id="inlineRadio50" value="0.5")
-                span 50%
-        div.form-check.form-check-inline
-            label.form-check-label
-                input.form-check-input(type="radio" name="radioOptions" id="inlineRadio100" value="1")
-                span 100%
+        h4.text-center Market (mBTC)
+        div.container.text-center
+            div.form-check.form-check-inline
+                label.form-check-label
+                    input.form-check-input(type="radio" name="radioOptions" checked id="inlineRadio25" value="0.25")
+                    span 25%
+            div.form-check.form-check-inline
+                label.form-check-label
+                    input.form-check-input(type="radio" name="radioOptions" id="inlineRadio50" value="0.5")
+                    span 50%
+            div.form-check.form-check-inline
+                label.form-check-label
+                    input.form-check-input(type="radio" name="radioOptions" id="inlineRadio100" value="1")
+                    span 100%
+            p#calculatedBTC
         .row
             #BTCmarketTable.col-7
                 div.table-responsive

@@ -2,6 +2,9 @@
 
 $(document).ready(() => {
     const socket = io();
+    $('input[name="radioOptions"]').change(function () {
+        $('#calculatedBTC').text('Buy using BTC: ' + ($('#availableBTC').text() * $('input[name="radioOptions"]:checked').val()).toFixed(8))
+    });
 
     socket.emit('get poloniex market');
     socket.emit('get poloniex orders');
@@ -40,6 +43,8 @@ $(document).ready(() => {
 
     socket.on('poloniex balance', (data) => {
         const balanceTable = $('#PoloBalance tbody');
+        const calculatedBTC = $('#calculatedBTC');
+        calculatedBTC.text('');
         balanceTable.html('');
         let tdName = '';
         let tdAvailable = '';
@@ -48,7 +53,7 @@ $(document).ready(() => {
         let totalBtc = 0;
         data.forEach((ele) => {
             tdName = '<td>' + ele.marketName + '</td>';
-            tdAvailable = '<td class="text-success">' + ele.available + '</td>';
+            tdAvailable = '<td class="text-success" id="available' + ele.marketName + '">' + ele.available + '</td>';
             tdOnorders = '<td class="text-primary">' + ele.onOrders + '</td>';
             btcValue = '<td class="text-success btc-value">' + ele.btcValue + '</td>';
             balanceTable.append('<tr>' + tdName + tdAvailable + tdOnorders + btcValue + '</tr>');
@@ -57,6 +62,7 @@ $(document).ready(() => {
             totalBtc += parseFloat($(this).text());
         });
         balanceTable.append('<tr><td>Total BTC</td><td colspan="3" class="text-center" id="totalBtc">' + totalBtc.toFixed(8) + '</td></tr>');
+        calculatedBTC.text('Buy using BTC: ' + ($('#availableBTC').text() * $('input[name="radioOptions"]:checked').val()).toFixed(8))
     });
 
     socket.on('poloniex open orders', (data) => {
