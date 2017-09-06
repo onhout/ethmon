@@ -75,7 +75,7 @@ class PoloniexMon {
         TradingApi.buy({
             currencyPair: data.marketName,
             amount: purchaseAmount * data.percentage,
-            rate: data.buy_price * 0.5
+            rate: data.buy_price
         })
             .then(msg => {
                 let order = JSON.parse(msg.body);
