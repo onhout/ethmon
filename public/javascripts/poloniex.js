@@ -32,7 +32,7 @@ $(document).ready(() => {
                     marketName: ele.marketName,
                     percentage: percentage,
                     buy_price: ele.highestBid,
-                    sell_price: ele.highestBid * 1.015
+                    sell_price: ele.highestBid * 1.01
                 });
             })
         });
