@@ -10,22 +10,22 @@ $(document).ready(() => {
         const BTCmarketTable = $('#BTCmarketTable tbody');
         BTCmarketTable.html('');
         let tdOnePercent = '';
-        let tdBuy = '';
-        let tdSell = '';
+        let tdHigh = '';
+        let tdLow = '';
         let tdName = '';
         let tdVol = '';
         let tdPercentChange = '';
         let tdActions = '';
         data.forEach((ele) => {
-            let positive = ele.percentChange > 0 ? 'text-success' : 'text-danger';
+            let range = (ele.highestBid - ele.low24hr) / (ele.high24hr - ele.low24hr);
             tdName = '<td><a href="https://poloniex.com/exchange#' + ele.marketName.toLowerCase() + '" target="_blank">' + ele.marketName + '</a></td>';
-            tdBuy = '<td class="text-success">' + numeral(ele.highestBid * 1000).format('0,0.00000') + '</td>';
-            tdSell = '<td class="text-danger">' + numeral(ele.lowestAsk * 1000).format('0,0.00000') + '</td>';
+            tdLow = '<td class="text-danger">' + numeral(ele.low24hr * 1000).format('0,0.00000') + '</td>';
+            tdHigh = '<td class="text-success">' + numeral(ele.high24hr * 1000).format('0,0.00000') + '</td>';
             tdOnePercent = '<td class="text-info">' + numeral(ele.highestBid * 1000 * 1.015).format('0,0.00000') + '</td>';
-            tdPercentChange = '<td class="' + positive + '">' + numeral(ele.percentChange).format('0.00%') + '</td>';
+            tdPercentChange = '<td class="text-primary">' + numeral(range).format('0.00%') + '</td>';
             tdActions = '<td><button class="btn btn-success btn-sm" id="buy_' + ele.marketName + '">' +
                 'BUY @ ' + ele.highestBid + '</button>' + '</td>';
-            BTCmarketTable.append('<tr>' + tdName + tdBuy + tdSell + tdOnePercent + tdVol + tdPercentChange + tdActions + '</tr>');
+            BTCmarketTable.append('<tr>' + tdName + tdLow + tdHigh + tdOnePercent + tdVol + tdPercentChange + tdActions + '</tr>');
             $('#buy_' + ele.marketName).click(function () {
                 let percentage = $('input[name="radioOptions"]:checked').val();
                 socket.emit('buy and sell now', {
@@ -106,7 +106,8 @@ $(document).ready(() => {
                 let percentGrew = 0;
                 if (index !== 0) {
                     percentGrew = ((array[index].weightedAverage - array[0].weightedAverage) / array[0].weightedAverage) * 100;
-                    msg += percentGrew.toFixed(2) + '% ';
+                    let positive = percentGrew >= 0 ? 'text-success' : 'text-danger';
+                    msg += '<span class="' + positive + '">' + percentGrew.toFixed(2) + '% </span>';
                 }
                 tdGraph = '<tr><td>' + data.name + '</td><td>' + msg + '</td></tr>';
             });

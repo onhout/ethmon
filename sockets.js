@@ -74,7 +74,7 @@ class Socket {
                 }, 5555);
                 intervals.chartdata = setInterval(() => {
                     poloniex.chartData();
-                }, 70000);
+                }, 100000);
             });
 
             socket.on('disconnect', function () {
