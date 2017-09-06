@@ -35,15 +35,15 @@ class PoloniexMon {
 
 
     collect_chartData() {
-        let now = moment.now();
         let obj = this;
         if (!obj.chartInterval) {
-            get_chart();
+            get_chart(moment.now());
             obj.chartInterval = setInterval(() => {
-                get_chart()
+                let now = moment.now();
+                get_chart(now)
             }, obj.currency_pairs.length * 2 * 1337);
         }
-        function get_chart() {
+        function get_chart(now) {
             for (let x = 0, ln = obj.currency_pairs.length; x < ln; x++) {
                 setTimeout(function (y) {
                     PublicApi.returnChartData({
