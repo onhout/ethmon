@@ -3,6 +3,7 @@ import config from "./config.json";
 import moment from "moment";
 import Pushover from "pushover-notifications";
 
+const MACD = require('technicalindicators').MACD;
 const TradingApi = API.tradingApi.create(config.poloniex_key, config.poloniex_secret);
 const PublicApi = API.publicApi.create();
 const PushApi = API.pushApi;

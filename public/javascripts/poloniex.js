@@ -24,7 +24,7 @@ $(document).ready(() => {
             tdName = '<td><a href="https://poloniex.com/exchange#' + ele.marketName.toLowerCase() + '" target="_blank">' + ele.marketName + '</a></td>';
             tdLow = '<td class="text-danger">' + numeral(ele.low24hr * 1000).format('0,0.00000') + '</td>';
             tdHigh = '<td class="text-success">' + numeral(ele.high24hr * 1000).format('0,0.00000') + '</td>';
-            tdOnePercent = '<td class="text-info">' + numeral(ele.lowestAsk * 1000 * 1.015).format('0,0.00000') + '</td>';
+            tdOnePercent = '<td class="text-info">' + numeral(ele.lowestAsk * 1000 * 1.01).format('0,0.00000') + '</td>';
             tdPercentChange = '<td class="text-primary">' + numeral(range).format('0.00%') + '</td>';
             tdActions = '<td><button class="btn btn-success btn-sm" id="buy_' + ele.marketName + '">' +
                 'BUY @ ' + ele.lowestAsk + '</button>' + '</td>';
