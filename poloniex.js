@@ -45,22 +45,38 @@ class PoloniexMon {
             }, obj.currency_pairs.length * 2 * 1337);
         }
         function get_chart(now) {
+
+            // let macdInput = {};
+            // let macdValues = [];
+
             for (let x = 0, ln = obj.currency_pairs.length; x < ln; x++) {
                 setTimeout(function (y) {
                     PublicApi.returnChartData({
                         currencyPair: obj.currency_pairs[y].marketName,
-                        start: (now / 1000) - 2100,
+                        start: (now / 1000) - 21600,
                         end: 9999999999,
                         period: 300
                     })
                         .then((data) => {
                             let chartData = JSON.parse(data.body);
+                            // chartData.forEach(function(dat){
+                            //     macdValues.push(dat.close) //high, low, open, close weightedAverage
+                            // });
+                            // macdInput = {
+                            //     values: macdValues,
+                            //     fastPeriod: 12,
+                            //     slowPeriod: 26,
+                            //     signalPeriod: 9,
+                            //     SimpleMAOscillator: false,
+                            //     SimpleMASignal: false
+                            // };
                             if (x === obj.currency_pairs.length) {
                                 obj.chartData = [];
                             }
                             obj.chartData.push({
                                 data: chartData,
-                                name: obj.currency_pairs[y].marketName
+                                name: obj.currency_pairs[y].marketName,
+                                // MACD: MACD.calculate(macdInput)
                             });
                             if (x === obj.currency_pairs.length - 1) {
                                 obj.socket.emit('chart data', obj.chartData);
@@ -240,6 +256,11 @@ class PoloniexMon {
         p.send(message, err => {
             console.log(err)
         });
+    }
+
+    getMACD() {
+        let obj = this;
+
     }
 }
 
