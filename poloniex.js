@@ -100,9 +100,7 @@ class PoloniexMon {
                     TradingApi.returnOpenOrders({currencyPair: data.marketName})
                         .then((msg) => {
                             let openOrders = JSON.parse(msg.body);
-                            if (openOrders[0] && openOrders.find(order => {
-                                    return order.type
-                                }) === "buy") {
+                            if (openOrders[0] && openOrders[0].type === "buy") {
                                 console.log('Buying...');
                             } else {
                                 setTimeout(() => {
