@@ -106,26 +106,6 @@ $(document).ready(() => {
         const Graphs = $('#Graphs tbody');
         Graphs.html('');
         data.forEach((current) => {
-            // let APPENDTEXT = '';
-            // let MACDDIFFTEXT = '';
-            // let MACDTEXT = '';
-            // let SIGTEXT = '';
-            // let HISTTEXT = '';
-            // for (let i = current.MACD.length - 6; i < current.MACD.length; i++) {
-            //     let MACDnum = parseFloat(current.MACD[i].MACD);
-            //     let Signum = parseFloat(current.MACD[i].signal);
-            //     let Histnum = parseFloat(current.MACD[i].histogram);
-            //
-            //     let Diff = ((MACDnum - Signum)/Math.abs(Signum) - 1) * 100;
-            //
-            //     let positiveMACD = Diff > 0 ? 'text-success' : 'text-danger';
-            //     let positiveHIST = Histnum > 0 ? 'text-success' : 'text-danger';
-            //
-            //     MACDDIFFTEXT += '<span class="' + positiveMACD + '">|' + Diff + '|</span>';
-            //     HISTTEXT += '<span class="' + positiveHIST + '">|' + Histnum + '|</span>';
-            // }
-            //
-            // APPENDTEXT = MACDDIFFTEXT + '<br/>' + HISTTEXT;
             let MACDnum = parseFloat(current.MACD[current.MACD.length - 1].MACD);
             let Signum = parseFloat(current.MACD[current.MACD.length - 1].signal);
             let positiveCLASS = MACDnum > 0 && Signum ? 'text-success' : 'text-danger';
@@ -136,7 +116,7 @@ $(document).ready(() => {
                 '<td style="padding: 0 0.75rem"><a href="https://poloniex.com/exchange#' + current.name.toLowerCase() + '" target="_blank">' + current.name + '</td>' +
                 '<td style="padding: 0 0.75rem" class="' + positiveCLASS + '">' + positiveTEXT + '</td>' +
                 '<td style="padding: 0 0.75rem">' +
-                '<div>' +
+                '<div style="border: white solid 1px;">' +
                 '<div style="border-bottom: lightpink solid 1px"><svg id="graph_' + current.name + '" width="' + $(window).width * 0.75 + '" height="60"></svg></div>' +
                 '<div><svg id="macd_' + current.name + '" width="' + $(window).width * 0.80 + '" height="60"></svg></div>' +
                 '</div>' +

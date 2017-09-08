@@ -86,7 +86,7 @@ class Chart {
         let xScale = d3.scale.linear()
             .range([0, obj.WIDTH])
             .domain([
-                -25,
+                -24,
                 data.length - 1
             ]);
 
