@@ -104,8 +104,8 @@ class PoloniexMon {
                 obj.notifiedMACD.indexOf(marketName) === -1
             ) {
                 obj.notifiedMACD.push(marketName);
-                obj.pushNotification(marketName + ' - MACD BANG BANG for is going crazy! Check it!',
-                    'https://poloniex.com/exchange#' + marketName.toLowerCase());
+                obj.pushNotification(marketName + ' - MACD BANG BANG is going crazy! Check it!',
+                    'https://m.poloniex.com/#/exchange/' + marketName.toLowerCase());
             }
             return rawCalc;
         }
@@ -277,6 +277,7 @@ class PoloniexMon {
             message: text,	// required
             title: "Trade Bot notification",
             sound: 'cash register',
+            device: 'minana',
             url: url
         };
         p.send(message, err => {
