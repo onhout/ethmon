@@ -38,9 +38,10 @@ class PoloniexMon {
 
     collect_chartData() {
         let obj = this;
+
         setInterval(() => {
             obj.notifiedMACD = [];
-        }, 24000);
+        }, 240000);
         if (!obj.chartInterval) {
             get_chart(moment.now());
             obj.chartInterval = setInterval(() => {
@@ -97,8 +98,8 @@ class PoloniexMon {
                 rawCalc[rawCalc.length - 2].histogram < 0 &&
                 rawCalc[rawCalc.length - 1].histogram > 0 &&
                 obj.notifiedMACD.indexOf(marketName) === -1) {
-                obj.pushNotification(marketName + ' - MACD BANG BANG for is going crazy! Check it!');
                 obj.notifiedMACD.push(marketName);
+                obj.pushNotification(marketName + ' - MACD BANG BANG for is going crazy! Check it!');
             }
             return rawCalc;
         }
