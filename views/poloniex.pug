@@ -27,6 +27,19 @@ block content
                             th Cancel
                         tbody
         h4.text-center Market (mBTC)
+        .row
+            #Graphs.col-12
+                div.table-responsive
+                    table.table.table-striped.table-bordered.table-hover.table-inverse
+                        thead
+                            th(style="padding:0.3rem") Name
+                            th(style="padding:0.3rem") Graph
+                            th(style="padding:0.3rem") MACD BANG BANG
+                            th(style="padding:0.3rem") MACD up down
+                        tbody
+                            tr
+                                td COLLECTING...
+
         div.container.text-center
             div.form-check.form-check-inline
                 label.form-check-label
@@ -41,8 +54,9 @@ block content
                     input.form-check-input(type="radio" name="radioOptions" id="inlineRadio100" value="1")
                     span 100%
             p#calculatedBTC
+
         .row
-            #BTCmarketTable.col-7
+            #BTCmarketTable.col-12
                 div.table-responsive
                     table.table.table-striped.table-sm.table-bordered.table-hover.table-inverse
                         thead
@@ -53,16 +67,9 @@ block content
                             th Range
                             th Actions
                         tbody
-            #Graphs.col-5
-                div.table-responsive
-                    table.table.table-striped.table-bordered.table-hover.table-inverse
-                        thead
-                            th(style="padding:0.3rem") Graph
-                        tbody
-                            tr
-                                td COLLECTING...
 
     script(src="/javascripts/alert.js")
+    script(src="/javascripts/graphs.js")
     script(src="/javascripts/poloniex.js")
         // /Miner info
     // /Wrapper

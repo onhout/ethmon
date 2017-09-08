@@ -46,8 +46,6 @@ class PoloniexMon {
         }
         function get_chart(now) {
 
-            // let macdInput = {};
-            // let macdValues = [];
 
             for (let x = 0, ln = obj.currency_pairs.length; x < ln; x++) {
                 setTimeout(function (y) {
@@ -59,24 +57,13 @@ class PoloniexMon {
                     })
                         .then((data) => {
                             let chartData = JSON.parse(data.body);
-                            // chartData.forEach(function(dat){
-                            //     macdValues.push(dat.close) //high, low, open, close weightedAverage
-                            // });
-                            // macdInput = {
-                            //     values: macdValues,
-                            //     fastPeriod: 12,
-                            //     slowPeriod: 26,
-                            //     signalPeriod: 9,
-                            //     SimpleMAOscillator: false,
-                            //     SimpleMASignal: false
-                            // };
                             if (x === obj.currency_pairs.length) {
                                 obj.chartData = [];
                             }
                             obj.chartData.push({
                                 data: chartData,
                                 name: obj.currency_pairs[y].marketName,
-                                // MACD: MACD.calculate(macdInput)
+                                MACD: getMACD(chartData)
                             });
                             if (x === obj.currency_pairs.length - 1) {
                                 obj.socket.emit('chart data', obj.chartData);
@@ -86,6 +73,25 @@ class PoloniexMon {
                         .catch(err => console.log('returnChartData error: ' + err.code));
                 }, x * 1337, x); // we're passing x
             }
+        }
+
+        function getMACD(chartData) {
+            let macdValues = [];
+            chartData.forEach(function (dat) {
+                macdValues.push(dat.close); //high, low, open, close weightedAverage
+            });
+            let rawCalc = MACD.calculate({
+                values: macdValues,
+                fastPeriod: 12,
+                slowPeriod: 26,
+                signalPeriod: 9,
+                SimpleMAOscillator: false,
+                SimpleMASignal: false
+            });
+
+            return rawCalc.filter(data => {
+                return data.histogram !== undefined
+            });
         }
     }
 
@@ -116,7 +122,9 @@ class PoloniexMon {
                     TradingApi.returnOpenOrders({currencyPair: data.marketName})
                         .then((msg) => {
                             let openOrders = JSON.parse(msg.body);
-                            if (openOrders[0] && openOrders[0].type === "buy") {
+                            if (openOrders[0] && openOrders.find(order => {
+                                    return order.type === 'buy'
+                                })) {
                                 console.log('Buying...');
                             } else {
                                 setTimeout(() => {

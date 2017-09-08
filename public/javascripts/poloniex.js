@@ -106,18 +106,47 @@ $(document).ready(() => {
         const Graphs = $('#Graphs tbody');
         Graphs.html('');
         data.forEach((current) => {
-            let tdGraph = '';
-            let msg = '';
-            current.data.forEach((c, index, array) => {
-                let percentGrew = 0;
-                if (index !== 0) {
-                    percentGrew = ((array[index].weightedAverage - array[0].weightedAverage) / array[0].weightedAverage) * 100;
-                    let positive = percentGrew >= 0 ? 'text-success' : 'text-danger';
-                    msg += '<span class="' + positive + '">' + percentGrew.toFixed(2) + '% </span>';
-                }
-                tdGraph = '<tr><td>' + current.name + '</td><td>' + msg + '</td></tr>';
-            });
+            // let APPENDTEXT = '';
+            // let MACDDIFFTEXT = '';
+            // let MACDTEXT = '';
+            // let SIGTEXT = '';
+            // let HISTTEXT = '';
+            // for (let i = current.MACD.length - 6; i < current.MACD.length; i++) {
+            //     let MACDnum = parseFloat(current.MACD[i].MACD);
+            //     let Signum = parseFloat(current.MACD[i].signal);
+            //     let Histnum = parseFloat(current.MACD[i].histogram);
+            //
+            //     let Diff = ((MACDnum - Signum)/Math.abs(Signum) - 1) * 100;
+            //
+            //     let positiveMACD = Diff > 0 ? 'text-success' : 'text-danger';
+            //     let positiveHIST = Histnum > 0 ? 'text-success' : 'text-danger';
+            //
+            //     MACDDIFFTEXT += '<span class="' + positiveMACD + '">|' + Diff + '|</span>';
+            //     HISTTEXT += '<span class="' + positiveHIST + '">|' + Histnum + '|</span>';
+            // }
+            //
+            // APPENDTEXT = MACDDIFFTEXT + '<br/>' + HISTTEXT;
+            let MACDnum = parseFloat(current.MACD[current.MACD.length - 1].MACD);
+            let Signum = parseFloat(current.MACD[current.MACD.length - 1].signal);
+            let positiveCLASS = MACDnum > 0 && Signum ? 'text-success' : 'text-danger';
+            let positiveTEXT = MACDnum > 0 && Signum ? 'UP' : 'DOWN';
+
+
+            let tdGraph = '<tr>' +
+                '<td style="padding: 0 0.75rem">' + current.name + '</td>' +
+                '<td style="padding: 0 0.75rem">' +
+                '<svg id="graph_' + current.name + '" width="450" height="60"></svg>' +
+                '</td>' +
+                '<td style="padding: 0 0.75rem">' +
+                '<svg id="macd_' + current.name + '" width="450" height="60"></svg>' +
+                '</td>' +
+                '<td style="padding: 0 0.75rem" class="' + positiveCLASS + '">' + positiveTEXT + '</td>' +
+                '</tr>';
             Graphs.append(tdGraph);
+            let marketChart = new Chart('#graph_' + current.name);
+            marketChart.createMarketChart(current.data, 'date', 'close');
+            let MACDChart = new Chart('#macd_' + current.name);
+            MACDChart.createMACD(current.MACD);
         });
     });
 

@@ -54,3 +54,20 @@ a {
 .footer p {
     margin: 20px 0;
 }
+
+line.baseline {
+    stroke: silver;
+    stroke-width: 1px;
+}
+
+.positive {
+    stroke: green;
+    fill: none;
+    stroke-width: 2px;
+}
+
+.negative {
+    stroke: red;
+    fill: none;
+    stroke-width: 3px;
+}
