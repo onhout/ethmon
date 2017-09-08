@@ -97,6 +97,8 @@ class PoloniexMon {
             if (rawCalc[rawCalc.length - 3].histogram < 0 &&
                 rawCalc[rawCalc.length - 2].histogram < 0 &&
                 rawCalc[rawCalc.length - 1].histogram > 0 &&
+                rawCalc[rawCalc.length - 1].MACD < 0 &&
+                rawCalc[rawCalc.length - 1].signal < 0 &&
                 obj.notifiedMACD.indexOf(marketName) === -1) {
                 obj.notifiedMACD.push(marketName);
                 obj.pushNotification(marketName + ' - MACD BANG BANG for is going crazy! Check it!');
