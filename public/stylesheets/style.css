@@ -56,18 +56,18 @@ a {
 }
 
 line.baseline {
-    stroke: silver;
+    stroke: #32383e;
     stroke-width: 1px;
 }
 
 .positive {
     stroke: green;
     fill: none;
-    stroke-width: 2px;
+    stroke-width: 1px;
 }
 
 .negative {
     stroke: red;
     fill: none;
-    stroke-width: 3px;
+    stroke-width: 1px;
 }

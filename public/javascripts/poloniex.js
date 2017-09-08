@@ -21,7 +21,7 @@ $(document).ready(() => {
         let tdActions = '';
         data.forEach((ele) => {
             let range = (ele.lowestAsk - ele.low24hr) / (ele.high24hr - ele.low24hr);
-            tdName = '<td><a href="https://poloniex.com/exchange#' + ele.marketName.toLowerCase() + '" target="_blank">' + ele.marketName + '</a></td>';
+            tdName = '<td>' + ele.marketName + '</a></td>';
             tdLow = '<td class="text-danger">' + numeral(ele.low24hr * 1000).format('0,0.00000') + '</td>';
             tdHigh = '<td class="text-success">' + numeral(ele.high24hr * 1000).format('0,0.00000') + '</td>';
             tdOnePercent = '<td class="text-info">' + numeral(ele.lowestAsk * 1000 * 1.01).format('0,0.00000') + '</td>';
@@ -129,18 +129,18 @@ $(document).ready(() => {
             let MACDnum = parseFloat(current.MACD[current.MACD.length - 1].MACD);
             let Signum = parseFloat(current.MACD[current.MACD.length - 1].signal);
             let positiveCLASS = MACDnum > 0 && Signum ? 'text-success' : 'text-danger';
-            let positiveTEXT = MACDnum > 0 && Signum ? 'UP' : 'DOWN';
+            let positiveTEXT = MACDnum > 0 && Signum ? 'ABOVE' : 'BELOW';
 
 
             let tdGraph = '<tr>' +
-                '<td style="padding: 0 0.75rem">' + current.name + '</td>' +
-                '<td style="padding: 0 0.75rem">' +
-                '<svg id="graph_' + current.name + '" width="450" height="60"></svg>' +
-                '</td>' +
-                '<td style="padding: 0 0.75rem">' +
-                '<svg id="macd_' + current.name + '" width="450" height="60"></svg>' +
-                '</td>' +
+                '<td style="padding: 0 0.75rem"><a href="https://poloniex.com/exchange#' + current.name.toLowerCase() + '" target="_blank">' + current.name + '</td>' +
                 '<td style="padding: 0 0.75rem" class="' + positiveCLASS + '">' + positiveTEXT + '</td>' +
+                '<td style="padding: 0 0.75rem">' +
+                '<div>' +
+                '<div style="border-bottom: lightpink solid 1px"><svg id="graph_' + current.name + '" width="' + $(window).width * 0.75 + '" height="60"></svg></div>' +
+                '<div><svg id="macd_' + current.name + '" width="' + $(window).width * 0.80 + '" height="60"></svg></div>' +
+                '</div>' +
+                '</td>' +
                 '</tr>';
             Graphs.append(tdGraph);
             let marketChart = new Chart('#graph_' + current.name);

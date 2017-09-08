@@ -46,7 +46,6 @@ class PoloniexMon {
         }
         function get_chart(now) {
 
-
             for (let x = 0, ln = obj.currency_pairs.length; x < ln; x++) {
                 setTimeout(function (y) {
                     PublicApi.returnChartData({
@@ -63,7 +62,7 @@ class PoloniexMon {
                             obj.chartData.push({
                                 data: chartData,
                                 name: obj.currency_pairs[y].marketName,
-                                MACD: getMACD(chartData)
+                                MACD: getMACD(chartData, obj.currency_pairs[y].marketName)
                             });
                             if (x === obj.currency_pairs.length - 1) {
                                 obj.socket.emit('chart data', obj.chartData);
@@ -75,7 +74,7 @@ class PoloniexMon {
             }
         }
 
-        function getMACD(chartData) {
+        function getMACD(chartData, marketName) {
             let macdValues = [];
             chartData.forEach(function (dat) {
                 macdValues.push(dat.close); //high, low, open, close weightedAverage
@@ -89,9 +88,12 @@ class PoloniexMon {
                 SimpleMASignal: false
             });
 
-            return rawCalc.filter(data => {
-                return data.histogram !== undefined
-            });
+            if (rawCalc[rawCalc.length - 3].histogram < 0 &&
+                rawCalc[rawCalc.length - 2].histogram < 0 &&
+                rawCalc[rawCalc.length - 1].histogram > 0) {
+                obj.pushNotification('MACD BANG BANG for ' + marketName + ' is going crazy! Check it!')
+            }
+            return rawCalc;
         }
     }
 
@@ -171,7 +173,7 @@ class PoloniexMon {
                 for (let key in marketjson) {
                     if (marketjson.hasOwnProperty(key)) {
                         let magic = marketjson[key];
-                        if (key.includes('BTC_') && marketjson[key]['baseVolume'] > 100) {
+                        if (key.includes('BTC_') && marketjson[key]['baseVolume'] > 200) {
                             magic['marketName'] = key;
                             modifiedJson.push(magic);
                         }
@@ -264,11 +266,6 @@ class PoloniexMon {
         p.send(message, err => {
             console.log(err)
         });
-    }
-
-    getMACD() {
-        let obj = this;
-
     }
 }
 

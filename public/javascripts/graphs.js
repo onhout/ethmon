@@ -38,7 +38,7 @@ class Chart {
     createMarketChart(chartData, x, y) {
         let obj = this;
         let lineFunc = d3.svg.line()
-            .x((d) => {
+            .x((d, i) => {
                 return obj.xRange(chartData, x)(d[x]);
             })
             .y((d) => {
@@ -86,7 +86,7 @@ class Chart {
         let xScale = d3.scale.linear()
             .range([0, obj.WIDTH])
             .domain([
-                0,
+                -25,
                 data.length - 1
             ]);
 
@@ -121,6 +121,6 @@ class Chart {
             .attr("d", line(data))
             .attr('class', 'negative')
             .attr("clip-path", "url(#clipPathNeg)")
-            .attr('stroke-dasharray', "3, 3");
+            .attr('stroke-dasharray', "2, 2");
     }
 }
