@@ -33,6 +33,7 @@ class PoloniexMon {
         this.chartData = [];
         this.chartInterval = false;
         this.notifiedMACD = [];
+        this.btcPortfolio = 0;
     }
 
 
@@ -41,7 +42,7 @@ class PoloniexMon {
 
         setInterval(() => {
             obj.notifiedMACD = [];
-        }, 240000);
+        }, 255555);
         if (!obj.chartInterval) {
             get_chart(moment.now());
             obj.chartInterval = setInterval(() => {
@@ -99,9 +100,12 @@ class PoloniexMon {
                 rawCalc[rawCalc.length - 1].histogram > 0 &&
                 rawCalc[rawCalc.length - 1].MACD < 0 &&
                 rawCalc[rawCalc.length - 1].signal < 0 &&
-                obj.notifiedMACD.indexOf(marketName) === -1) {
+                obj.btcPortfolio > 0.00001 &&
+                obj.notifiedMACD.indexOf(marketName) === -1
+            ) {
                 obj.notifiedMACD.push(marketName);
-                obj.pushNotification(marketName + ' - MACD BANG BANG for is going crazy! Check it!');
+                obj.pushNotification(marketName + ' - MACD BANG BANG for is going crazy! Check it!',
+                    'https://poloniex.com/exchange#' + marketName.toLowerCase());
             }
             return rawCalc;
         }
@@ -203,6 +207,7 @@ class PoloniexMon {
         TradingApi.returnCompleteBalances()
             .then((msg) => {
                 let balancejson = JSON.parse(msg.body);
+                obj.btcPortfolio = balancejson['BTC'].available;
                 let modifiedJson = [];
                 for (let key in balancejson) {
                     if (balancejson.hasOwnProperty(key)) {
@@ -266,15 +271,18 @@ class PoloniexMon {
             .catch(err => console.log('cancelOrder error: ' + err.code));
     }
 
-    pushNotification(text) {
+    pushNotification(text, url) {
         let obj = this;
         let message = {
             message: text,	// required
             title: "Trade Bot notification",
-            sound: 'cash register'
+            sound: 'cash register',
+            url: url
         };
         p.send(message, err => {
-            console.log(err)
+            if (err) {
+                console.log(err)
+            }
         });
     }
 }
