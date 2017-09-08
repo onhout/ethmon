@@ -32,11 +32,15 @@ class PoloniexMon {
         this.pushMark = false;
         this.chartData = [];
         this.chartInterval = false;
+        this.notifiedMACD = [];
     }
 
 
     collect_chartData() {
         let obj = this;
+        setInterval(() => {
+            obj.notifiedMACD = [];
+        }, 24000);
         if (!obj.chartInterval) {
             get_chart(moment.now());
             obj.chartInterval = setInterval(() => {
@@ -44,6 +48,7 @@ class PoloniexMon {
                 get_chart(now)
             }, obj.currency_pairs.length * 2 * 1337);
         }
+
         function get_chart(now) {
 
             for (let x = 0, ln = obj.currency_pairs.length; x < ln; x++) {
@@ -90,8 +95,10 @@ class PoloniexMon {
 
             if (rawCalc[rawCalc.length - 3].histogram < 0 &&
                 rawCalc[rawCalc.length - 2].histogram < 0 &&
-                rawCalc[rawCalc.length - 1].histogram > 0) {
-                obj.pushNotification('MACD BANG BANG for ' + marketName + ' is going crazy! Check it!')
+                rawCalc[rawCalc.length - 1].histogram > 0 &&
+                obj.notifiedMACD.indexOf(marketName) === -1) {
+                obj.pushNotification(marketName + ' - MACD BANG BANG for is going crazy! Check it!');
+                obj.notifiedMACD.push(marketName);
             }
             return rawCalc;
         }
