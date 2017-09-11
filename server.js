@@ -11,7 +11,7 @@ class Server {
          * Get port from environment and store in Express.
          */
 
-        const port = Server.normalizePort('3000');
+        const port = Server.normalizePort('3333');
         app.set('port', port);
         /**
          * Listen on provided port, on all network interfaces.
