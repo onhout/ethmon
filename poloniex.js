@@ -99,18 +99,18 @@ class PoloniexMon {
                 SimpleMASignal: false
             });
 
-            if (rawCalc[rawCalc.length - 3].histogram < 0 &&
-                rawCalc[rawCalc.length - 2].histogram < 0 &&
-                rawCalc[rawCalc.length - 1].histogram > 0 &&
-                rawCalc[rawCalc.length - 1].MACD < 0 &&
-                rawCalc[rawCalc.length - 1].signal < 0 &&
-                obj.btcPortfolio > 0.00001 &&
-                obj.notifiedMACD.indexOf(marketName) === -1
-            ) {
-                obj.notifiedMACD.push(marketName);
-                obj.pushNotification(marketName + ' - MACD BANG BANG is going crazy! Check it!',
-                    'https://m.poloniex.com/#/exchange/' + marketName.toLowerCase());
-            }
+            // if (rawCalc[rawCalc.length - 3].histogram < 0 &&
+            //     rawCalc[rawCalc.length - 2].histogram < 0 &&
+            //     rawCalc[rawCalc.length - 1].histogram > 0 &&
+            //     rawCalc[rawCalc.length - 1].MACD < 0 &&
+            //     rawCalc[rawCalc.length - 1].signal < 0 &&
+            //     obj.btcPortfolio > 0.00001 &&
+            //     obj.notifiedMACD.indexOf(marketName) === -1
+            // ) {
+            //     obj.notifiedMACD.push(marketName);
+            //     obj.pushNotification(marketName + ' - MACD BANG BANG is going crazy! Check it!',
+            //         'https://m.poloniex.com/#/exchange/' + marketName.toLowerCase());
+            // }
             return rawCalc;
         }
     }
