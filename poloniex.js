@@ -52,31 +52,35 @@ class PoloniexMon {
         }
 
         function get_chart(now) {
-
             for (let x = 0, ln = obj.currency_pairs.length; x < ln; x++) {
                 setTimeout(function (y) {
-                    PublicApi.returnChartData({
-                        currencyPair: obj.currency_pairs[y].marketName,
-                        start: (now / 1000) - 21600,
-                        end: 9999999999,
-                        period: 300
-                    })
-                        .then((data) => {
-                            let chartData = JSON.parse(data.body);
-                            if (x === obj.currency_pairs.length) {
-                                obj.chartData = [];
-                            }
-                            obj.chartData.push({
-                                data: chartData,
-                                name: obj.currency_pairs[y].marketName,
-                                MACD: getMACD(chartData, obj.currency_pairs[y].marketName)
-                            });
-                            if (x === obj.currency_pairs.length - 1) {
-                                obj.socket.emit('chart data', obj.chartData);
-                                obj.chartData = [];
-                            }
+                    if (obj.currency_pairs[y].marketName) {
+                        PublicApi.returnChartData({
+                            currencyPair: obj.currency_pairs[y].marketName,
+                            start: (now / 1000) - 21600,
+                            end: 9999999999,
+                            period: 300
                         })
-                        .catch(err => console.log('returnChartData error: ' + err.code));
+                            .then((data) => {
+                                let chartData = JSON.parse(data.body);
+                                if (x === obj.currency_pairs.length) {
+                                    obj.chartData = [];
+                                }
+                                obj.chartData.push({
+                                    data: chartData,
+                                    name: obj.currency_pairs[y].marketName,
+                                    MACD: getMACD(chartData, obj.currency_pairs[y].marketName)
+                                });
+                                if (x === obj.currency_pairs.length - 1) {
+                                    obj.socket.emit('chart data', obj.chartData);
+                                    obj.chartData = [];
+                                }
+                            })
+                            .catch(err => console.log('returnChartData error: ' + err.code));
+                    } else {
+                        console.log('Wheres the name?');
+                        console.log(obj.currency_pairs[y]);
+                    }
                 }, x * 1337, x); // we're passing x
             }
         }
