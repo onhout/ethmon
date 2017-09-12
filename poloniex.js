@@ -54,7 +54,7 @@ class PoloniexMon {
         function get_chart(now) {
             for (let x = 0, ln = obj.currency_pairs.length; x < ln; x++) {
                 setTimeout(function (y) {
-                    if (obj.currency_pairs[y].marketName) {
+                    if (obj.currency_pairs[y] && obj.currency_pairs[y].marketName) {
                         PublicApi.returnChartData({
                             currencyPair: obj.currency_pairs[y].marketName,
                             start: (now / 1000) - 21600,
