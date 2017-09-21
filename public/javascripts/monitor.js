@@ -155,7 +155,6 @@ $(document).ready(() => {
         // Update window title and header with hashrate substitution
         let title = data[0].title.replace('%HR%', Number(eth[0] / 1000).toFixed(2));
         totalMiningHash = Number(eth[0] / 1000).toFixed(2);
-        console.log(totalMiningHash);
         if (error.msg !== null) {
             title = 'Error: ' + title;
         } else if (warning.msg !== null) {
