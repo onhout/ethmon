@@ -4,7 +4,7 @@ block content
     .container-fluid
         // Miner info
         #minerInfo
-            h1.display-3.text-center= title
+            h1.display-5.text-center= title
             div.table-responsive
                 table.table.table-bordered.table-striped.table-sm.table-inverse
                     thead
@@ -22,15 +22,24 @@ block content
                         th Comments
                         th Hard Reset
                     tbody
-        #bittrex_balance
-            h3.text-center Bittrex Balance
-            table.table.table-bordered.table-striped.table.sm.table-inverse
-                thead
-                    th Coin
-                    th Balance
-                    th Rate
-                    th USD
-                tbody
+        .row
+            #bittrex_balance.col-sm-8
+                h3.text-center Bittrex Balance
+                div.table-responsive
+                    table.table.table-bordered.table-striped.table.sm.table-inverse
+                        thead
+                            th Coin
+                            th Balance
+                            th BTC Value
+                            th Rate
+                            th USD
+                        tbody
+            #USDT_stats.col-sm-2
+                h3.text-center Stats
+                ul.list-group
+            #mining_estimator.col-sm-2
+                h3.text-center Estimator
+                ul.list-group
         p#minerSummary
         p#lastUpdated
     script(src='/javascripts/monitor.js')

@@ -15,22 +15,51 @@ let animation_index = 0;
 
 $(document).ready(() => {
     const socket = io();
+    let ethPrice = 0;
 
-    socket.emit('get miner stats');
-    socket.on('market data', (data) => {
+    socket.emit('get bittrex balance');
+    socket.on('bittrex balance', (data) => {
         const BittrexBalance = $('#bittrex_balance tbody');
+        const USDTCurrency = $('#USDT_stats ul.list-group');
+        const mining_estimator = $('#mining_estimator ul.list-group');
         BittrexBalance.html('');
+        USDTCurrency.html('');
+        mining_estimator.html('');
+        ethPrice = data.currency.ETH;
 
         data.balances.forEach((balance) => {
-            let regexPattern = '\\b(-' + balance.Currency + ')\\b';
             let tdCurrency = '<td>' + balance.Currency + '</td>';
             let tdBalance = '<td>' + balance.Balance + '</td>';
-            let xChangeRate = data.market_data.btc.find(ele => ele.MarketName.match(new RegExp(regexPattern)), 'i') || {Last: 1};
-            let tdRate = '<td>' + xChangeRate.Last + '</td>';
-            let USD = '<td>$' + (balance.Balance * xChangeRate.Last * data.currency.BTC).toFixed(2) + '</td>';
-            BittrexBalance.append('<tr>' + tdCurrency + tdBalance + tdRate + USD + '</tr>')
+            let tdTotalBTCValue = '<td>' + balance.TotalBTCValue + '</td>';
+            let tdRate = '<td>' + balance.LastRate + '</td>';
+            let USD = '<td class="text-success">$' + balance.USDValue.toFixed(4) + '</td>';
+            BittrexBalance.append('<tr>' + tdCurrency + tdBalance + tdTotalBTCValue + tdRate + USD + '</tr>')
+        });
 
-        })
+        for (let key in data.currency) {
+            if (data.currency.hasOwnProperty(key)) {
+                let ele =
+                    '<li class="list-group-item list-group-item-dark text-center">' +
+                    '<span>' + key + '</span>: ' +
+                    '<span class="text-info">$' + data.currency[key].toFixed(2) + '</span>' +
+                    '</li>';
+                USDTCurrency.append(ele);
+            }
+        }
+
+        for (let key in data.miningEstimator) {
+            if (data.miningEstimator.hasOwnProperty(key)) {
+                let ele =
+                    '<li class="list-group-item list-group-item-dark text-center">' +
+                    '<span>' + key + '</span>: ' +
+                    '<p>' +
+                    '<span class="text-success">' + data.miningEstimator[key].toFixed(6) + 'ETH</span>' +
+                    '<span class="text-primary">($' + (data.miningEstimator[key] * data.currency.ETH).toFixed(2) + ')</span>' +
+                    '</p>' +
+                    '</li>';
+                mining_estimator.append(ele);
+            }
+        }
     });
 
     socket.on('incoming', (data) => {
@@ -123,6 +152,7 @@ $(document).ready(() => {
         }
 
         let header = data[0].header.replace('%HR%', Number(eth[0] / 1000).toFixed(0));
+
         if ($('#minerInfo h1').html() !== title) {
             $('#minerInfo h1').html(title);
         }
