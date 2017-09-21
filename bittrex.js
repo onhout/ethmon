@@ -36,26 +36,16 @@ class BITTREX {
         callback(currencies);
     }
 
-    static computeProfits(ethPrice) {
+    static estimatingFigure() {
         let obj = this;
         request.get('https://etherchain.org/api/miningEstimator', (err, res, body) => {
-            let bb = JSON.parse(body);
-            obj.estimator = bb.data[0];
-        });
-        if (obj.estimator !== undefined && ethPrice > 0) {
-            let netHashGH = (obj.estimator.difficulty / obj.estimator.blockTime) / 1e9;
-            let userRatio = 373 * 1e6 / (netHashGH * 1e9);
-            let blockPerMin = 60.0 / obj.estimator.blockTime;
-            let ethPerMin = blockPerMin * 5.0;
-            let earningPerMinute = userRatio * ethPerMin;
-            return {
-                min: earningPerMinute,
-                hour: earningPerMinute * 60,
-                day: earningPerMinute * 60 * 24,
-                week: earningPerMinute * 60 * 24 * 7,
-                month: earningPerMinute * 60 * 24 * 30,
-                year: earningPerMinute * 60 * 24 * 365
+            if (!err) {
+                let bb = JSON.parse(body);
+                obj.estimator = bb.data[0];
             }
+        });
+        if (obj.estimator !== undefined) {
+            return obj.estimator
         } else {
             return null;
         }
@@ -96,7 +86,7 @@ class BITTREX {
                         obj.socket.emit('bittrex balance', {
                             balances: correctedBalance,
                             currency: currency,
-                            miningEstimator: BITTREX.computeProfits(obj.ethPrice)
+                            estimateFigure: BITTREX.estimatingFigure()
                         })
                     }
                 })

@@ -16,6 +16,8 @@ let animation_index = 0;
 $(document).ready(() => {
     const socket = io();
     let ethPrice = 0;
+    let totalMiningHash = 0;
+    let predefinedHash = 373;
 
     socket.emit('get bittrex balance');
     socket.on('bittrex balance', (data) => {
@@ -46,18 +48,33 @@ $(document).ready(() => {
                 USDTCurrency.append(ele);
             }
         }
+        if (data.estimateFigure) {
+            let netHashGH = (data.estimateFigure.difficulty / data.estimateFigure.blockTime) / 1e9;
+            let userRatio = (totalMiningHash || predefinedHash) * 1e6 / (netHashGH * 1e9);
+            let blockPerMin = 60.0 / data.estimateFigure.blockTime;
+            let ethPerMin = blockPerMin * 5.0;
+            let earningPerMinute = userRatio * ethPerMin;
+            let profits = {
+                min: earningPerMinute,
+                hour: earningPerMinute * 60,
+                day: earningPerMinute * 60 * 24,
+                week: earningPerMinute * 60 * 24 * 7,
+                month: earningPerMinute * 60 * 24 * 30,
+                year: earningPerMinute * 60 * 24 * 365
+            };
 
-        for (let key in data.miningEstimator) {
-            if (data.miningEstimator.hasOwnProperty(key)) {
-                let ele =
-                    '<li class="list-group-item list-group-item-dark text-center">' +
-                    '<span>' + key + '</span>: ' +
-                    '<p>' +
-                    '<span class="text-success">' + data.miningEstimator[key].toFixed(6) + 'ETH</span>' +
-                    '<span class="text-primary">($' + (data.miningEstimator[key] * data.currency.ETH).toFixed(2) + ')</span>' +
-                    '</p>' +
-                    '</li>';
-                mining_estimator.append(ele);
+            for (let key in profits) {
+                if (profits.hasOwnProperty(key)) {
+                    let ele =
+                        '<li class="list-group-item list-group-item-dark text-center">' +
+                        '<span>' + key + '</span>: ' +
+                        '<p>' +
+                        '<span class="text-success">' + profits[key].toFixed(6) + 'ETH</span>' +
+                        '<span class="text-primary">($' + (profits[key] * data.currency.ETH).toFixed(2) + ')</span>' +
+                        '</p>' +
+                        '</li>';
+                    mining_estimator.append(ele);
+                }
             }
         }
     });
@@ -96,7 +113,7 @@ $(document).ready(() => {
         $.each(data, (index, miner) => {
             if (miner !== null) {
                 let error_class = (miner.error == null) ? '' : ' class=error';
-                let span = (data[0].hashrates) ? 8 : 6;
+                let span = (data[0].hashrates) ? 8 : 8;
 
                 tableContent += '<tr' + error_class + ' id="' + miner.name + '" data-pinnumber="' + miner.pinnumber + '">';
                 tableContent += '<td>' + miner.name + '</td>';
@@ -137,6 +154,8 @@ $(document).ready(() => {
 
         // Update window title and header with hashrate substitution
         let title = data[0].title.replace('%HR%', Number(eth[0] / 1000).toFixed(2));
+        totalMiningHash = Number(eth[0] / 1000).toFixed(2);
+        console.log(totalMiningHash);
         if (error.msg !== null) {
             title = 'Error: ' + title;
         } else if (warning.msg !== null) {
