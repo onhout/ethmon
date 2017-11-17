@@ -4,6 +4,8 @@ import moment from "moment";
 import Pushover from "pushover-notifications";
 
 const MACD = require('technicalindicators').MACD;
+const EMA = require('technicalindicators').EMA;
+const SMA = require('technicalindicators').SMA;
 const TradingApi = API.tradingApi.create(config.poloniex_key, config.poloniex_secret);
 const PublicApi = API.publicApi.create();
 const PushApi = API.pushApi;
@@ -44,46 +46,89 @@ class PoloniexMon {
             obj.notifiedMACD = [];
         }, 255555);
         if (!obj.chartInterval) {
-            get_chart(moment.now());
+            get_chart();
             obj.chartInterval = setInterval(() => {
                 let now = moment.now();
-                get_chart(now)
+                get_chart()
             }, obj.currency_pairs.length * 2 * 1337);
         }
 
-        function get_chart(now) {
-            for (let x = 0, ln = obj.currency_pairs.length; x < ln; x++) {
-                setTimeout(function (y) {
-                    if (obj.currency_pairs[y] && obj.currency_pairs[y].marketName) {
-                        PublicApi.returnChartData({
-                            currencyPair: obj.currency_pairs[y].marketName,
-                            start: (now / 1000) - 21600,
-                            end: 9999999999,
-                            period: 300
-                        })
-                            .then((data) => {
-                                let chartData = JSON.parse(data.body);
-                                if (x === obj.currency_pairs.length) {
-                                    obj.chartData = [];
-                                }
-                                obj.chartData.push({
-                                    data: chartData,
-                                    name: obj.currency_pairs[y].marketName,
-                                    MACD: getMACD(chartData, obj.currency_pairs[y].marketName)
-                                });
-                                if (x === obj.currency_pairs.length - 1) {
-                                    obj.socket.emit('chart data', obj.chartData);
-                                    obj.chartData = [];
-                                }
-                            })
-                            .catch(err => console.log('returnChartData error: ' + err.code));
-                    } else {
-                        console.log('Wheres the name?');
-                        console.log(obj.currency_pairs[y]);
-                    }
-                }, x * 1337, x); // we're passing x
-            }
+        async function getChartData(marketname) {
+            let options = {
+                currencyPair: marketname,
+                start: (moment.now() / 1000) - 432000,
+                end: 9999999999,
+                period: 1800
+            };
+            return await PublicApi.returnChartData(options)
         }
+
+        async function get_chart() {
+            // let currentPair = await getChartData('BTC_BCH');
+            // console.log(JSON.parse(currentPair.body));
+            let key = 0;
+            for (let pair of obj.currency_pairs) {
+                try {
+                    key += 1;
+                    let currentPair = await getChartData(pair.marketName);
+                    // console.log(currentPair);
+                    let chartData = JSON.parse(currentPair.body);
+                    if (key === obj.currency_pairs.length) {
+                        obj.chartData = [];
+                    }
+                    obj.chartData.push({
+                        data: chartData,
+                        name: pair.marketName,
+                        MACD: getMACD(chartData, pair.marketName),
+                        EMA: getEMA(chartData, pair.marketName),
+                        SMA: getSMA(chartData, pair.marketName)
+                    });
+                    if (key === obj.currency_pairs.length - 1) {
+                        obj.socket.emit('chart data', obj.chartData);
+                        obj.chartData = [];
+                    }
+                } catch (err) {
+                    console.log(err);
+                }
+            }
+        };
+
+        // function get_chart(now) {
+        //     for (let x = 0, ln = obj.currency_pairs.length; x < ln; x++) {
+        //         setTimeout(function (y) {
+        //             if (obj.currency_pairs[y] && obj.currency_pairs[y].marketName) {
+        //                 PublicApi.returnChartData({
+        //                     currencyPair: obj.currency_pairs[y].marketName,
+        //                     start: (now / 1000) - 432000,
+        //                     end: 9999999999,
+        //                     period: 1800
+        //                 });
+        //                     // .then((data) => {
+        //                     //     let chartData = JSON.parse(data.body);
+        //                     //     if (x === obj.currency_pairs.length) {
+        //                     //         obj.chartData = [];
+        //                     //     }
+        //                     //     console.log(getSMA(chartData, obj.currency_pairs[y].marketName));
+        //                     //     console.log(getEMA(chartData, obj.currency_pairs[y].marketName));
+        //                     //     obj.chartData.push({
+        //                     //         data: chartData,
+        //                     //         name: obj.currency_pairs[y].marketName,
+        //                     //         MACD: getMACD(chartData, obj.currency_pairs[y].marketName)
+        //                     //     });
+        //                     //     if (x === obj.currency_pairs.length - 1) {
+        //                     //         obj.socket.emit('chart data', obj.chartData);
+        //                     //         obj.chartData = [];
+        //                     //     }
+        //                     // })
+        //                     // .catch(err => console.log('returnChartData error: ' + err));
+        //             } else {
+        //                 console.log('Wheres the name?');
+        //                 console.log(obj.currency_pairs[y]);
+        //             }
+        //         }, x * 1337, x); // we're passing x
+        //     }
+        // }
+
 
         function getMACD(chartData, marketName) {
             let macdValues = [];
@@ -112,6 +157,30 @@ class PoloniexMon {
             //         'https://m.poloniex.com/#/exchange/' + marketName.toLowerCase());
             // }
             return rawCalc;
+        }
+
+        function getEMA(chartData, marketName) {
+            let emaValues = [];
+            chartData.forEach(function (dat) {
+                emaValues.push(dat.close); //high, low, open, close weightedAverage
+            });
+            let ema = EMA.calculate({
+                period: 10,
+                values: emaValues
+            });
+            return ema;
+        }
+
+        function getSMA(chartData, marketName) {
+            let smaValues = [];
+            chartData.forEach(function (dat) {
+                smaValues.push(dat.close); //high, low, open, close weightedAverage
+            });
+            let sma = SMA.calculate({
+                period: 50,
+                values: smaValues
+            });
+            return sma;
         }
     }
 
@@ -191,7 +260,7 @@ class PoloniexMon {
                 for (let key in marketjson) {
                     if (marketjson.hasOwnProperty(key)) {
                         let magic = marketjson[key];
-                        if (key.includes('BTC_') && marketjson[key]['baseVolume'] > 200) {
+                        if (key.includes('USDT_') && marketjson[key]['baseVolume'] > 200) {
                             magic['marketName'] = key;
                             modifiedJson.push(magic);
                         }

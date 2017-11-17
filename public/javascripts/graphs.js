@@ -33,10 +33,55 @@ class Chart {
                         return d[YDATA];
                     })]);
         }
+
+        this.xScale = (chartData, xDomain) => {
+            return d3
+                .scale
+                .linear()
+                .range([0, WIDTH])
+                .domain([
+                    xDomain,
+                    chartData.length - 1
+                ]);
+        }
+
+        this.yScale = (chartData) => {
+            return d3
+                .scale
+                .linear()
+                .range([0, HEIGHT])
+                .domain([
+                    d3.min(chartData, (d) => {
+                        return d;
+                    }),
+                    d3.max(chartData, (d) => {
+                        return d;
+                    })]);
+        }
     }
 
-    createMarketChart(chartData, x, y) {
+    createMarketChart(chartData, sma, ema, x, y) {
         let obj = this;
+
+        let smaline = d3.svg.line()
+            .x((d, i) => {
+                return obj.xScale(sma, 0)(i);
+            })
+            .y((d) => {
+                return obj.yScale(sma)(d);
+            })
+            .interpolate('linear');
+
+        let emaline = d3.svg.line()
+            .x((d, i) => {
+                return obj.xScale(ema, 0)(i);
+            })
+            .y((d) => {
+                return obj.yScale(ema)(d);
+            })
+            .interpolate('linear');
+
+
         let lineFunc = d3.svg.line()
             .x((d, i) => {
                 return obj.xRange(chartData, x)(d[x]);
@@ -47,9 +92,21 @@ class Chart {
             .interpolate('linear');
 
         obj.vis.append('svg:path')
+            .attr('d', smaline(sma))
+            .attr('stroke', 'red')
+            .attr('stroke-width', 1)
+            .attr('fill', 'none');
+
+        obj.vis.append('svg:path')
+            .attr('d', emaline(ema))
+            .attr('stroke', 'green')
+            .attr('stroke-width', 1)
+            .attr('fill', 'none');
+
+        obj.vis.append('svg:path')
             .attr('d', lineFunc(chartData))
             .attr('stroke', 'steelblue')
-            .attr('stroke-width', 2)
+            .attr('stroke-width', 3)
             .attr('fill', 'none');
     }
 
@@ -86,7 +143,7 @@ class Chart {
         let xScale = d3.scale.linear()
             .range([0, obj.WIDTH])
             .domain([
-                -24,
+                -25,
                 data.length - 1
             ]);
 
