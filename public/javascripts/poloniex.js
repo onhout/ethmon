@@ -22,9 +22,9 @@ $(document).ready(() => {
         data.forEach((ele) => {
             let range = (ele.lowestAsk - ele.low24hr) / (ele.high24hr - ele.low24hr);
             tdName = '<td>' + ele.marketName + '</a></td>';
-            tdLow = '<td class="text-danger">' + numeral(ele.low24hr).format('$0,0.00') + '</td>';
-            tdHigh = '<td class="text-success">' + numeral(ele.high24hr).format('$0,0.00') + '</td>';
-            tdOnePercent = '<td class="text-info">' + numeral(ele.lowestAsk * 1.01).format('$0,0.00') + '</td>';
+            tdLow = '<td class="text-danger">' + numeral(ele.low24hr * 1000).format('0,0.00000') + '</td>';
+            tdHigh = '<td class="text-success">' + numeral(ele.high24hr * 1000).format('0,0.00000') + '</td>';
+            tdOnePercent = '<td class="text-info">' + numeral(ele.lowestAsk * 1000 * 1.01).format('0,0.00000') + '</td>';
             tdPercentChange = '<td class="text-primary">' + numeral(range).format('0.00%') + '</td>';
             tdActions = '<td><button class="btn btn-success btn-sm" id="buy_' + ele.marketName + '">' +
                 'BUY @ ' + ele.lowestAsk + '</button>' + '</td>';
@@ -103,27 +103,44 @@ $(document).ready(() => {
     });
 
     socket.on('chart data', (data) => {
-        const Graphs = $('#Graphs tbody');
-        const graphLength = window.innerWidth * 0.85;
+        const Graphs = $('#Graphs');
+        const graphLength = $('.col-sm-6').width() * 0.85;
 
         Graphs.html('');
-        data.forEach((current) => {
+        data.forEach((current, i) => {
             let MACDnum = parseFloat(current.MACD[current.MACD.length - 1].MACD);
             let Signum = parseFloat(current.MACD[current.MACD.length - 1].signal);
-            let positiveCLASS = MACDnum > 0 && Signum ? 'text-success' : 'text-danger';
-            let positiveTEXT = MACDnum > 0 && Signum ? 'ABOVE' : 'BELOW';
+            let positiveCLASS = MACDnum > 0 && Signum ? 'success' : 'danger';
+            let positiveTEXT = MACDnum > 0 && Signum ? 'fa-arrow-up' : 'fa-arrow-down';
+            let wrapRow = $('<div class="row"></div>');
 
-            let tdGraph = '<tr>' +
-                '<td style="padding: 0 0.75rem"><a href="https://poloniex.com/exchange#' + current.name.toLowerCase() + '" target="_blank">' + current.name + '</td>' +
-                '<td style="padding: 0 0.75rem" class="' + positiveCLASS + '">' + positiveTEXT + '</td>' +
-                '<td style="padding: 0 0.75rem">' +
-                '<div style="border: white solid 1px;">' +
+            let tdGraph = '<div class="col-sm-6">' +
+                '<div class="card text-white">' +
+                '<div class="card-header bg-' + positiveCLASS + '"><a href="https://poloniex.com/exchange#' + current.name.toLowerCase() + '" target="_blank">' + current.name + '' +
+                '<i class="fa ' + positiveTEXT + '"></i></div>' +
+                '<div class="card-body bg-dark">' +
                 '<div style="border-bottom: lightpink solid 1px"><svg id="graph_' + current.name + '" width="' + graphLength + '" height="100"></svg></div>' +
                 '<div><svg id="macd_' + current.name + '" width="' + graphLength + '" height="40"></svg></div>' +
                 '</div>' +
-                '</td>' +
-                '</tr>';
-            Graphs.append(tdGraph);
+                '</div>' +
+                // '<td style="padding: 0 0.75rem"><a href="https://poloniex.com/exchange#' + current.name.toLowerCase() + '" target="_blank">' + current.name + '</td>' +
+                // '<td style="padding: 0 0.75rem" class="' + positiveCLASS + '">' + positiveTEXT + '</td>' +
+                // '<td style="padding: 0 0.75rem">' +
+                // '<div style="border: white solid 1px;">' +
+                // '<div style="border-bottom: lightpink solid 1px"><svg id="graph_' + current.name + '" width="' + graphLength + '" height="100"></svg></div>' +
+                // '<div><svg id="macd_' + current.name + '" width="' + graphLength + '" height="40"></svg></div>' +
+                // '</div>' +
+                // '</td>' +
+                '</div>';
+
+            tdGraph += tdGraph;
+
+            if (i % 3 === 0) {
+                wrapRow.append(tdGraph);
+                Graphs.append(wrapRow);
+
+            }
+
             let marketChart = new Chart('#graph_' + current.name);
             marketChart.createMarketChart(current.data, current.SMA, current.EMA, 'date', 'close');
             let MACDChart = new Chart('#macd_' + current.name);

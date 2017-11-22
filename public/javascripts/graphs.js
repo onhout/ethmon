@@ -49,14 +49,7 @@ class Chart {
             return d3
                 .scale
                 .linear()
-                .range([0, HEIGHT])
-                .domain([
-                    d3.min(chartData, (d) => {
-                        return d;
-                    }),
-                    d3.max(chartData, (d) => {
-                        return d;
-                    })]);
+                .range([HEIGHT, 0]);
         }
     }
 
@@ -65,19 +58,31 @@ class Chart {
 
         let smaline = d3.svg.line()
             .x((d, i) => {
-                return obj.xScale(sma, 0)(i);
+                return obj.xScale(sma, sma.length - chartData.length)(i);
             })
             .y((d) => {
-                return obj.yScale(sma)(d);
+                return obj.yScale(sma).domain([
+                    d3.min(chartData, (d) => {
+                        return d[y];
+                    }),
+                    d3.max(chartData, (d) => {
+                        return d[y];
+                    })])(d);
             })
             .interpolate('linear');
 
         let emaline = d3.svg.line()
             .x((d, i) => {
-                return obj.xScale(ema, 0)(i);
+                return obj.xScale(ema, ema.length - chartData.length)(i);
             })
             .y((d) => {
-                return obj.yScale(ema)(d);
+                return obj.yScale(ema).domain([
+                    d3.min(chartData, (d) => {
+                        return d[y];
+                    }),
+                    d3.max(chartData, (d) => {
+                        return d[y];
+                    })])(d);
             })
             .interpolate('linear');
 
@@ -91,6 +96,13 @@ class Chart {
             })
             .interpolate('linear');
 
+
+        obj.vis.append('svg:path')
+            .attr('d', lineFunc(chartData))
+            .attr('stroke', 'steelblue')
+            .attr('stroke-width', 3)
+            .attr('fill', 'none');
+
         obj.vis.append('svg:path')
             .attr('d', smaline(sma))
             .attr('stroke', 'red')
@@ -99,14 +111,8 @@ class Chart {
 
         obj.vis.append('svg:path')
             .attr('d', emaline(ema))
-            .attr('stroke', 'green')
+            .attr('stroke', 'yellow')
             .attr('stroke-width', 1)
-            .attr('fill', 'none');
-
-        obj.vis.append('svg:path')
-            .attr('d', lineFunc(chartData))
-            .attr('stroke', 'steelblue')
-            .attr('stroke-width', 3)
             .attr('fill', 'none');
     }
 
