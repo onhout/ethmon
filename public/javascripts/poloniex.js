@@ -104,48 +104,50 @@ $(document).ready(() => {
 
     socket.on('chart data', (data) => {
         const Graphs = $('#Graphs');
-        const graphLength = $('.col-sm-6').width() * 0.85;
-
+        const graphLength = $(window).width() * 0.45;
+        let tdGraph = '';
         Graphs.html('');
         data.forEach((current, i) => {
             let MACDnum = parseFloat(current.MACD[current.MACD.length - 1].MACD);
             let Signum = parseFloat(current.MACD[current.MACD.length - 1].signal);
             let positiveCLASS = MACDnum > 0 && Signum ? 'success' : 'danger';
             let positiveTEXT = MACDnum > 0 && Signum ? 'fa-arrow-up' : 'fa-arrow-down';
-            let wrapRow = $('<div class="row"></div>');
-
-            let tdGraph = '<div class="col-sm-6">' +
-                '<div class="card text-white">' +
-                '<div class="card-header bg-' + positiveCLASS + '"><a href="https://poloniex.com/exchange#' + current.name.toLowerCase() + '" target="_blank">' + current.name + '' +
-                '<i class="fa ' + positiveTEXT + '"></i></div>' +
-                '<div class="card-body bg-dark">' +
-                '<div style="border-bottom: lightpink solid 1px"><svg id="graph_' + current.name + '" width="' + graphLength + '" height="100"></svg></div>' +
-                '<div><svg id="macd_' + current.name + '" width="' + graphLength + '" height="40"></svg></div>' +
-                '</div>' +
-                '</div>' +
-                // '<td style="padding: 0 0.75rem"><a href="https://poloniex.com/exchange#' + current.name.toLowerCase() + '" target="_blank">' + current.name + '</td>' +
-                // '<td style="padding: 0 0.75rem" class="' + positiveCLASS + '">' + positiveTEXT + '</td>' +
-                // '<td style="padding: 0 0.75rem">' +
-                // '<div style="border: white solid 1px;">' +
-                // '<div style="border-bottom: lightpink solid 1px"><svg id="graph_' + current.name + '" width="' + graphLength + '" height="100"></svg></div>' +
-                // '<div><svg id="macd_' + current.name + '" width="' + graphLength + '" height="40"></svg></div>' +
-                // '</div>' +
-                // '</td>' +
-                '</div>';
-
-            tdGraph += tdGraph;
-
-            if (i % 3 === 0) {
-                wrapRow.append(tdGraph);
-                Graphs.append(wrapRow);
-
+            if (i % 2 === 0) {
+                tdGraph = '<div class="row graphRows-' + i + '">' +
+                    '<div class="col">' +
+                    '<div class="card text-white">' +
+                    '<div class="card-header bg-' + positiveCLASS + '"><a class="h4 text-warning" href="https://poloniex.com/exchange#' + current.name.toLowerCase() + '" target="_blank">' + current.name + '</a>' +
+                    '<i class="fa ' + positiveTEXT + ' fa-2x pull-right"></i></div>' +
+                    '<div class="card-body bg-dark">' +
+                    '<div style="border-bottom: lightpink solid 1px"><svg id="graph_' + current.name + '" width="' + graphLength + '" height="100"></svg></div>' +
+                    '<div><svg id="macd_' + current.name + '" width="' + graphLength + '" height="40"></svg></div>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>';
+                Graphs.append(tdGraph);
+            } else {
+                tdGraph =
+                    '<div class="col">' +
+                    '<div class="card text-white">' +
+                    '<div class="card-header bg-' + positiveCLASS + '"><a class="h4 text-warning" href="https://poloniex.com/exchange#' + current.name.toLowerCase() + '" target="_blank">' + current.name + '</a>' +
+                    '<i class="fa ' + positiveTEXT + ' fa-2x pull-right"></i></div>' +
+                    '<div class="card-body bg-dark">' +
+                    '<div style="border-bottom: lightpink solid 1px"><svg id="graph_' + current.name + '" width="' + graphLength + '" height="100"></svg></div>' +
+                    '<div><svg id="macd_' + current.name + '" width="' + graphLength + '" height="40"></svg></div>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>';
+                $('.graphRows-' + (i - 1)).append(tdGraph)
             }
+        });
 
+        data.forEach((current, i) => {
             let marketChart = new Chart('#graph_' + current.name);
             marketChart.createMarketChart(current.data, current.SMA, current.EMA, 'date', 'close');
             let MACDChart = new Chart('#macd_' + current.name);
             MACDChart.createMACD(current.MACD);
-        });
+        })
     });
 
     socket.on('create chart table', () => {
