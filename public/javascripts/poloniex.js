@@ -119,8 +119,8 @@ $(document).ready(() => {
                     '<div class="card-header bg-' + positiveCLASS + '"><a class="h4 text-warning" href="https://poloniex.com/exchange#' + current.name.toLowerCase() + '" target="_blank">' + current.name + '</a>' +
                     '<i class="fa ' + positiveTEXT + ' fa-2x pull-right"></i></div>' +
                     '<div class="card-body bg-dark">' +
-                    '<div style="border-bottom: lightpink solid 1px"><svg id="graph_' + current.name + '" width="' + graphLength + '" height="100"></svg></div>' +
-                    '<div><svg id="macd_' + current.name + '" width="' + graphLength + '" height="40"></svg></div>' +
+                    '<div style="border-bottom: lightpink solid 1px"><svg id="graph_' + current.name + '" width="' + graphLength + '" height="400"></svg></div>' +
+                    '<div><svg id="macd_' + current.name + '" width="' + graphLength + '" height="80"></svg></div>' +
                     '</div>' +
                     '</div>' +
                     '</div>' +
@@ -133,8 +133,8 @@ $(document).ready(() => {
                     '<div class="card-header bg-' + positiveCLASS + '"><a class="h4 text-warning" href="https://poloniex.com/exchange#' + current.name.toLowerCase() + '" target="_blank">' + current.name + '</a>' +
                     '<i class="fa ' + positiveTEXT + ' fa-2x pull-right"></i></div>' +
                     '<div class="card-body bg-dark">' +
-                    '<div style="border-bottom: lightpink solid 1px"><svg id="graph_' + current.name + '" width="' + graphLength + '" height="100"></svg></div>' +
-                    '<div><svg id="macd_' + current.name + '" width="' + graphLength + '" height="40"></svg></div>' +
+                    '<div style="border-bottom: lightpink solid 1px"><svg id="graph_' + current.name + '" width="' + graphLength + '" height="400"></svg></div>' +
+                    '<div><svg id="macd_' + current.name + '" width="' + graphLength + '" height="80"></svg></div>' +
                     '</div>' +
                     '</div>' +
                     '</div>';
