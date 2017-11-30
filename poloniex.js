@@ -50,15 +50,15 @@ class PoloniexMon {
             obj.chartInterval = setInterval(() => {
                 let now = moment.now();
                 get_chart()
-            }, 3000000);
+            }, 600000);
         }
 
         async function getChartData(marketname) {
             let options = {
                 currencyPair: marketname,
-                start: (moment.now() / 1000) - 604800,
+                start: (moment.now() / 1000) - 86400,
                 end: 9999999999,
-                period: 1800
+                period: 300
             };
             return await PublicApi.returnChartData(options)
         }
@@ -199,6 +199,47 @@ class PoloniexMon {
                                                             priority: 'success'
                                                         });
                                                         obj.pushMark = true;
+                                                        return new Promise((resolve, reject) => {
+                                                            resolve(sellOrder.orderNumber);
+                                                        });
+                                                    })
+                                                    .then(orderNumber => {
+                                                        let Con = PushApi.create({
+                                                            subscriptionName: 'ticker',
+                                                            currencyPair: data.marketName,
+                                                            debug: true
+                                                        }, (tix) => {
+                                                            console.log('LAST PRICE : ' + tix.highestBid + ' THRESHOLD: ' + data.buy_price / 1.01);
+                                                            if (tix.highestBid <= data.buy_price / 1.01) {
+                                                                Con.close();
+                                                                TradingApi.cancelOrder({orderNumber})
+                                                                    .then((msg) => {
+                                                                        let mes = JSON.parse(msg.body);
+                                                                        if (mes.success === 1) {
+                                                                            obj.socket.emit('alert', {
+                                                                                text: '1% threshold reached',
+                                                                                priority: 'danger'
+                                                                            });
+                                                                            TradingApi.sell({
+                                                                                currencyPair: data.marketName,
+                                                                                amount: List[currency],
+                                                                                rate: tix.highestBid,
+                                                                            })
+                                                                                .then((msg) => {
+                                                                                    obj.socket.emit('alert', {
+                                                                                        text: 'Selling at market price',
+                                                                                        priority: 'success'
+                                                                                    });
+                                                                                })
+                                                                        }
+                                                                    })
+
+                                                            } else if (tix.lastPrice >= data.sell_price) {
+                                                                Con.close();
+                                                                console.log('SELL ORDER DONE');
+                                                            }
+                                                        })
+
                                                     })
                                                     .catch(err => console.log('SELL error: ' + err.code))
                                             }
@@ -317,11 +358,11 @@ class PoloniexMon {
             device: 'minana',
             url: url
         };
-        p.send(message, err => {
-            if (err) {
-                console.log(err)
-            }
-        });
+        // p.send(message, err => {
+        //     if (err) {
+        //         console.log(err)
+        //     }
+        // });
     }
 }
 

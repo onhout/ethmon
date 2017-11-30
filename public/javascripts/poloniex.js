@@ -13,29 +13,33 @@ $(document).ready(() => {
         const BTCmarketTable = $('#BTCmarketTable tbody');
         BTCmarketTable.html('');
         let tdOnePercent = '';
+        let tdThreshold = '';
         let tdHigh = '';
         let tdLow = '';
+        let tdLast = '';
         let tdName = '';
         let tdVol = '';
         let tdPercentChange = '';
         let tdActions = '';
         data.forEach((ele) => {
             let range = (ele.lowestAsk - ele.low24hr) / (ele.high24hr - ele.low24hr);
-            tdName = '<td>' + ele.marketName + '</a></td>';
+            tdName = '<td id="' + ele.marketName + '_price">' + ele.marketName + '</a></td>';
+            tdLast = '<td class="text-warning">' + numeral(ele.last * 1000).format('0,0.00000') + '</td>';
             tdLow = '<td class="text-danger">' + numeral(ele.low24hr * 1000).format('0,0.00000') + '</td>';
             tdHigh = '<td class="text-success">' + numeral(ele.high24hr * 1000).format('0,0.00000') + '</td>';
-            tdOnePercent = '<td class="text-info">' + numeral(ele.lowestAsk * 1000 * 1.01).format('0,0.00000') + '</td>';
+            tdOnePercent = '<td class="text-info">' + numeral(ele.lowestAsk * 1000 * 1.015).format('0,0.00000') + '</td>';
+            tdThreshold = '<td class="text-danger">' + numeral(ele.highestBid * 1000 / 1.015).format('0,0.00000') + '</td>';
             tdPercentChange = '<td class="text-primary">' + numeral(range).format('0.00%') + '</td>';
             tdActions = '<td><button class="btn btn-success btn-sm" id="buy_' + ele.marketName + '">' +
                 'BUY @ ' + ele.lowestAsk + '</button>' + '</td>';
-            BTCmarketTable.append('<tr>' + tdName + tdLow + tdHigh + tdOnePercent + tdVol + tdPercentChange + tdActions + '</tr>');
+            BTCmarketTable.append('<tr>' + tdName + tdLast + tdLow + tdHigh + tdOnePercent + tdThreshold + tdVol + tdPercentChange + tdActions + '</tr>');
             $('#buy_' + ele.marketName).click(function () {
                 let percentage = $('input[name="radioOptions"]:checked').val();
                 socket.emit('buy and sell now', {
                     marketName: ele.marketName,
                     percentage: percentage,
                     buy_price: ele.lowestAsk,
-                    sell_price: ele.lowestAsk * 1.01
+                    sell_price: ele.lowestAsk * 1.015
                 });
             })
         });
@@ -146,7 +150,7 @@ $(document).ready(() => {
             let marketChart = new Chart('#graph_' + current.name);
             marketChart.createMarketChart(current.data, current.SMA, current.EMA, 'date', 'close');
             let MACDChart = new Chart('#macd_' + current.name);
-            MACDChart.createMACD(current.MACD);
+            MACDChart.createMACD(current.MACD, current.data);
         })
     });
 

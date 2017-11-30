@@ -7,11 +7,15 @@ class Chart {
             ORGWIDTH = $(target_location).width(),
             ORGHEIGHT = $(target_location).height();
 
-        this.vis = d3.select(target_location).append("svg")
-            .attr("width", WIDTH + margin.left + margin.right)
-            .attr("height", HEIGHT + margin.top + margin.bottom)
-            .append("g")
-            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+        if (target_location.indexOf('#macd_') == 0) {
+            this.vis = d3.select(target_location)
+        } else {
+            this.vis = d3.select(target_location).append("svg")
+                .attr("width", WIDTH + margin.left + margin.right)
+                .attr("height", HEIGHT + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+        }
 
 
         this.HEIGHT = HEIGHT;
@@ -53,7 +57,7 @@ class Chart {
                 .range([0, WIDTH])
                 .domain([
                     xDomain,
-                    chartData.length - 1
+                    chartData.length
                 ]);
         }
 
@@ -168,7 +172,7 @@ class Chart {
 
     }
 
-    createMACD(data) {
+    createMACD(data, chartData) {
         let obj = this;
 
         //   Baseline
@@ -201,8 +205,8 @@ class Chart {
         let xScale = d3.scale.linear()
             .range([0, obj.ORGWIDTH])
             .domain([
-                -25,
-                data.length - 1
+                data.length - chartData.length,
+                data.length
             ]);
 
         let yScale = d3.scale.linear()
