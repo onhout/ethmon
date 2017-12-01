@@ -26,7 +26,7 @@ class Socket {
         let bittrex = new Bittrex(socketserver);
         poloniex.returnMarket();
 
-        setInterval(() => {
+        intervals.orders = setInterval(() => {
             poloniex.returnOrders();
         }, 9000);
 
@@ -68,7 +68,7 @@ class Socket {
 
             socket.on('get poloniex orders', () => {
                 poloniex.returnBalances();
-                intervals.orders = setInterval(() => {
+                intervals.balances = setInterval(() => {
                     poloniex.returnBalances();
                 }, 13000);
             });
@@ -79,14 +79,14 @@ class Socket {
 
             socket.on('disconnect', () => {
                 clearInterval(intervals.market);
-                clearInterval(intervals.orders);
                 clearInterval(intervals.chartdata);
-                clearInterval(intervals.balance);
+                clearInterval(intervals.balances);
+                clearInterval(intervals.bbalance);
             });
 
             socket.on('get bittrex balance', () => {
                 bittrex.getBittrexBalances();
-                intervals.balance = setInterval(() => {
+                intervals.bbalance = setInterval(() => {
                     bittrex.getBittrexBalances()
                 }, 10000)
             })

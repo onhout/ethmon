@@ -157,6 +157,8 @@ class PoloniexMon {
             }
         });
         let purchaseAmount = availableValue / data.buy_price;
+        let pathwayToHeaven = (data.sell_price - data.buy_price).toFixed(8);
+        let pathwayToHell = (data.buy_price - (data.buy_price / 1.01)).toFixed(8);
 
         TradingApi.buy({
             currencyPair: data.marketName,
@@ -209,7 +211,7 @@ class PoloniexMon {
                                                             currencyPair: data.marketName,
                                                             debug: true
                                                         }, (tix) => {
-                                                            console.log('LAST PRICE : ' + tix.highestBid + ' THRESHOLD: ' + data.buy_price / 1.01);
+                                                            console.log('LAST PRICE : ' + tix.highestBid + '| TARGET PRICE: ' + data.sell_price + ' | THRESHOLD: ' + data.buy_price / 1.01);
                                                             if (tix.highestBid <= data.buy_price / 1.01) {
                                                                 Con.close();
                                                                 TradingApi.cancelOrder({orderNumber})
@@ -226,6 +228,7 @@ class PoloniexMon {
                                                                                 rate: tix.highestBid,
                                                                             })
                                                                                 .then((msg) => {
+                                                                                    console.log('Selling at threshold price');
                                                                                     obj.socket.emit('alert', {
                                                                                         text: 'Selling at market price',
                                                                                         priority: 'success'
